@@ -1,2 +1,4 @@
-Flask==3.0.0
-SQLAlchemy==2.0.25
+flask
+flask_sqlalchemy
+sqlalchemy
+openai
