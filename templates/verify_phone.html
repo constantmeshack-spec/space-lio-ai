@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify Account | Spacelio</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body { background-color: #1e1e1e; color: purple; }
+h2 { color: #28a745; } /* header green */
+h5 { color: #007bff; } /* subheader blue */
+label { color: purple; }
+.btn-green { background-color: #28a745; color: #fff; border: none; }
+.btn-green:hover { background-color: #218838; }
+.form-control { background-color: #333; color: purple; border: 1px solid #555; }
+.form-control:focus { border-color: #28a745; }
+.alert { background-color: #222; color: purple; border: 1px solid #555; }
+</style>
+</head>
+<body>
+<div class="container mt-5">
+<h2>Verify Your Account</h2>
+<h5>Enter the OTP sent to {{ user.phone }} and upload your ID document</h5>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-warning">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="POST" enctype="multipart/form-data">
+  <div class="mb-3">
+    <label for="otp" class="form-label">OTP</label>
+    <input type="text" class="form-control" id="otp" name="otp" required>
+  </div>
+
+  <div class="mb-3">
+    <label for="id_document" class="form-label">Upload ID Document</label>
+    <input type="file" class="form-control" id="id_document" name="id_document" required>
+  </div>
+
+  <button type="submit" class="btn btn-green">Verify Account</button>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-link">Back to Dashboard</a>
+</form>
+</div>
+</body>
+</html>
