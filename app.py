@@ -20,7 +20,14 @@ for directory in [INSTANCE_DIR, UPLOAD_DIR]:
         os.makedirs(directory)
 
 # DATABASE CONFIG (Render PostgreSQL)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+else:
+    # LOCAL fallback (only for your computer)
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///local.db"
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # Max 5MB upload
