@@ -19,6 +19,7 @@ class User(db.Model):
     inviter_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     balance = db.Column(db.Float, default=0)
     is_verified = db.Column(db.Boolean, default=False)
+    role = db.Column(db.String(20), default="user")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     inviter = db.relationship("User", remote_side=[id], backref="invited_users")

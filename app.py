@@ -19,7 +19,8 @@ for directory in [INSTANCE_DIR, UPLOAD_DIR]:
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(INSTANCE_DIR, "spacelio.db")
+# DATABASE CONFIG (Render PostgreSQL)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # Max 5MB upload
