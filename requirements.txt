@@ -2,3 +2,4 @@ flask
 flask_sqlalchemy
 sqlalchemy
 openai
+psycopg2-binary
