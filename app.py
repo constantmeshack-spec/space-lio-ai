@@ -5,14 +5,36 @@ from werkzeug.utils import secure_filename
 import random
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables from .env
 
 # ------------------ APP CONFIG ------------------
 app = Flask(__name__)
-app.secret_key = "super-secret-key-change-this"
+
+# Use environment variables from .env
+app.secret_key = os.environ.get("SECRET_KEY", "super-secret-key-change-this")
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
 UPLOAD_DIR = os.path.join(INSTANCE_DIR, "uploads")
+
+# Create directories if they don't exist
+for directory in [INSTANCE_DIR, UPLOAD_DIR]:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+# DATABASE CONFIG
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+else:
+    # Local fallback
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///local.db"
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["UPLOAD_FOLDER"] = os.environ.get("UPLOAD_FOLDER", UPLOAD_DIR)
+app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5MB max
+
 
 # Create directories if they don't exist
 for directory in [INSTANCE_DIR, UPLOAD_DIR]:
