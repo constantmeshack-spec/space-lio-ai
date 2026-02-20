@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Affiliate Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e; /* dark background */
+            color: yellow; /* default text */
+        }
+        h2 {
+            color: green; /* header */
+        }
+        h3, p.subheader {
+            color: skyblue; /* subheader / info */
+        }
+        p, a, span {
+            color: yellow; /* other text/buttons */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #2c2c2c;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #444;
+            text-align: left;
+        }
+        th {
+            background-color: #333;
+            color: green; /* header of table */
+        }
+        button {
+            background-color: green;
+            color: yellow;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: darkgreen;
+        }
+        a {
+            text-decoration: none;
+            color: yellow;
+        }
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #2c2c2c;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Affiliate Dashboard</h2>
+        <p class="subheader">Your Referral Code: <strong>{{ referral_code }}</strong></p>
+        <p class="subheader">Total Earnings: KES {{ earnings }}</p>
+
+{% if earnings > 0 %}
+<form method="POST" action="{{ url_for('affiliate_withdraw') }}">
+    <button type="submit">Withdraw Earnings</button>
+</form>
+{% else %}
+<p>No earnings to withdraw yet.</p>
+{% endif %}
+
+        <p class="subheader">Number of People You Invited: {{ invited_count }}</p>
+
+        <h3 class="subheader">Invited Members</h3>
+        {% if invited_members %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Joined At</th>
+                    <th>Joined Affiliate?</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in invited_members %}
+                <tr>
+                    <td>{{ m.full_name }}</td>
+                    <td>{{ m.phone }}</td>
+                    <td>{{ m.joined_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{% if m.is_affiliate %}Yes{% else %}No{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No invited members yet.</p>
+        {% endif %}
+
+        <br>
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    </div>
+</body>
+</html>
