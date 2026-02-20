@@ -1,29 +1,45 @@
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import uuid
+from app import db
 
-db = SQLAlchemy()
-
-class User(db.Model):
-    __tablename__ = "user"
-
+class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    full_name = db.Column(db.String(150), nullable=False)
-    phone = db.Column(db.String(20), nullable=False, unique=True)
-    email = db.Column(db.String(120), nullable=False, unique=True)
-    country = db.Column(db.String(50), nullable=False)
-    region = db.Column(db.String(50), nullable=False)
-    id_number = db.Column(db.String(50), nullable=True)
-    password = db.Column(db.String(200), nullable=False)
-    invitation_code = db.Column(db.String(20), nullable=True, unique=True)
-    inviter_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
-    balance = db.Column(db.Float, default=0)
-    is_verified = db.Column(db.Boolean, default=False)
-    role = db.Column(db.String(20), default="user")
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    link = db.Column(db.String(500), nullable=True)  # link to outside
+    media_filename = db.Column(db.String(500), nullable=True)  # uploaded media
+    assigned_to_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed = db.Column(db.Boolean, default=False)
 
-    inviter = db.relationship("User", remote_side=[id], backref="invited_users")
+class Affiliate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), unique=True)
+    referral_code = db.Column(db.String(20), unique=True)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    earnings = db.Column(db.Float, default=0.0)
+    is_active = db.Column(db.Boolean, default=False)  # 🔒 IMPORTANT
+@app.route("/tasks")
+def tasks():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
 
-    def generate_invitation_code(self):
-        """Generates a unique 8-character invitation code"""
-        self.invitation_code = str(uuid.uuid4())[:8]
+    user = User.query.get(session["user_id"])
+
+    # 🔒 Check if user is an ACTIVE affiliate
+    affiliate = Affiliate.query.filter_by(
+        user_id=user.id,
+        is_active=True
+    ).first()
+
+    # Load tasks normally (affiliate is OPTIONAL)
+    tasks = Task.query.filter_by(
+        assigned_to_id=user.id,
+        completed=False
+    ).all()
+
+    return render_template(
+        "tasks.html",
+        user=user,
+        tasks=tasks,
+        affiliate=affiliate
+    )

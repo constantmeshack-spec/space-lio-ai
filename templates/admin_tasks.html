@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Manage Tasks</title>
+</head>
+<body>
+    <h1>All Tasks</h1>
+    <a href="{{ url_for('add_task') }}">Add New Task</a> | 
+    <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+    <hr>
+
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Link</th>
+            <th>Media</th>
+            <th>Assigned To</th>
+            <th>Created At</th>
+            <th>Completed</th>
+        </tr>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task.id }}</td>
+            <td>{{ task.title }}</td>
+            <td>{{ task.description }}</td>
+            <td>
+                {% if task.link %}
+                <a href="{{ task.link }}" target="_blank">Link</a>
+                {% endif %}
+            </td>
+            <td>
+                {% if task.media_file %}
+                <a href="{{ url_for('static', filename=task.media_file.split('instance/')[1]) }}" target="_blank">Media</a>
+                {% endif %}
+            </td>
+            <td>{{ task.assigned_to_id }}</td>
+            <td>{{ task.created_at }}</td>
+            <td>{{ task.completed }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

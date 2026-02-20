@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        a { text-decoration: none; color: blue; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<h1>🛠 Admin Dashboard</h1>
+<p>Logged in as <strong>ADMIN</strong></p>
+
+<!-- ✅ Task management links -->
+<p>
+    <a href="{{ url_for('admin_tasks') }}">Manage Tasks</a> |
+    <a href="{{ url_for('add_task') }}">Add Task</a> | 
+    <a href="{{ url_for('logout') }}">Logout</a>
+</p>
+
+<h2>Users</h2>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Full Name</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Admin</th>
+        <th>Verified</th>
+        <th>Actions</th>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.full_name }}</td>
+        <td>{{ user.phone }}</td>
+        <td>{{ user.email or '-' }}</td>
+        <td>{{ "YES" if user.is_admin else "NO" }}</td>
+        <td>{% if user.verified %}✅ Verified{% else %}❌ Not Verified{% endif %}</td>
+        <td>
+            {% if not user.verified %}
+            <a href="{{ url_for('admin_verify_user', user_id=user.id) }}">Verify</a>
+            {% else %}
+            —
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>
