@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Space Lio{% endblock %}</title>
+    <style>
+        body { background-color: #121212; color: #ff69b4; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        h1 { color: #90ee90; }
+        h2,h3,h4 { color: #1e90ff; }
+        a { color: #90ee90; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .btn { background-color: #006400; color: #fff; padding: 10px 20px; border:none; border-radius:5px; cursor:pointer; }
+        hr { border-color: #90ee90; }
+        .container { padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

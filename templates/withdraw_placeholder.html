@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Withdraw Balance</h2>
+    <p>Your withdrawal options will be available soon.</p>
+    <p>Current balance: {{ user.balance }} KES</p>
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+</div>
+{% endblock %}

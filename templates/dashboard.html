@@ -2,69 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard | Spacelio</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<title>User Dashboard</title>
 <style>
-body { background-color: #1e1e1e; color: #fd7e14; }
-h1 { color: #28a745; }
-h2 { color: #17a2b8; }
-h3, h4, h5, h6 { color: #fd7e14; }
-a { color: #17a2b8; }
-a:hover { color: #138496; }
-.btn-green { background-color: #218838; color: #fff; border: 2px solid #28a745; }
-.btn-green:hover { background-color: #28a745; color: #fff; }
-.card { background-color: #2a2a2a; border: 1px solid #28a745; }
-.alert { background-color: #222; color: #fd7e14; border: 1px solid #fd7e14; }
-.form-control { background-color: #333; color: #fd7e14; border: 1px solid #555; }
-.form-control:focus { background-color: #444; color: #fd7e14; border-color: #28a745; }
+body { background-color: #121212; color: pink; font-family: Arial, sans-serif; }
+h1 { color: lightgreen; }
+h2 { color: blue; }
+.card { border: 1px solid green; padding: 15px; margin: 15px 0; }
+.btn { background-color: darkgreen; color: white; padding: 8px 12px; border: none; border-radius: 4px; text-decoration: none; cursor: pointer; }
+.btn:hover { background-color: #006400; }
+p { margin: 5px 0; }
 </style>
 </head>
 <body>
-<div class="container mt-5">
+<h1>Welcome, {{ user.full_name }}</h1>
 
-    <!-- Welcome Header -->
-    <h1 class="mb-4">Welcome, {{ user.full_name }}!</h1>
+<div class="card">
+<h2>User Profile</h2>
+<p><strong>Full Name:</strong> {{ user.full_name }}</p>
+<p><strong>Phone:</strong> {{ user.phone }}</p>
+<p><strong>Id Number:</strong> {{ user.id }}</p>
+<p><strong>Country:</strong> {{ user.country }}</p>
+<p><strong>Verified:</strong> {{ 'Yes' if user.verified else 'No' }}</p>
+</div>
 
-    <!-- Verification Notice -->
-    {% if not user.verified %}
-        <div class="alert mb-4">
-            Your account is not verified. 
-            <a href="{{ url_for('verify') }}" class="fw-bold text-decoration-underline">Verify now</a>
-        </div>
-    {% endif %}
+<div class="card">
+<h2>Accounts</h2>
+<p><strong>Balance:</strong> KES {{ user.balance }}</p>
+<br
+<p><a class="btn" href="{{ url_for('withdraw') }}">Withdraw Balance</a></p>
+</div>
 
-    <!-- Account Balance -->
-    <div class="card p-4 mb-4">
-        <h2>Balance</h2>
-        <p class="fs-5">KES {{ "%.2f"|format(user.balance) }}</p>
-        {% if user.balance > 0 %}
-            <form action="{{ url_for('affiliate_withdraw') }}" method="POST">
-                <button type="submit" class="btn btn-green">Withdraw Balance</button>
-            </form>
-        {% endif %}
-    </div>
-
-    <!-- Tasks -->
-    <div class="card p-4 mb-4">
-        <h2>Your Tasks</h2>
-        <a href="{{ url_for('user_tasks') }}" class="btn btn-green mt-2">View Tasks</a>
-    </div>
-
-    <!-- Affiliate / Referral -->
-    {% if user.affiliate and user.affiliate.is_active %}
-        <div class="card p-4 mb-4">
-            <h2>Affiliate Program</h2>
-            <p>Referral Code: {{ user.affiliate.referral_code }}</p>
-            <p>Earnings: KES {{ "%.2f"|format(user.affiliate.earnings) }}</p>
-        </div>
-    {% endif %}
-
-    <!-- Logout -->
-    <div class="mt-3">
-        <a href="{{ url_for('logout') }}" class="text-orange-400 fw-bold">Logout</a>
-    </div>
-
+<div class="card">
+<h2>Quick Links</h2>
+<p><a class="btn" href="{{ url_for('tasks') }}">Go to Tasks</a></p>
+<br
+<p><a class="btn" href="{{ url_for('logout') }}">Logout</a></p>
 </div>
 </body>
 </html>

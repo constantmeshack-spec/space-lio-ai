@@ -2,32 +2,120 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tasks | Spacelio</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<title>User Tasks</title>
 <style>
-body { background-color: #1e1e1e; color: purple; }
-h2 { color: #28a745; }
-h5 { color: #007bff; }
-p, label { color: purple; }
-.btn-green { background-color: #28a745; color: #fff; border: none; }
-.btn-green:hover { background-color: #218838; }
-.alert { background-color: #222; color: purple; border: 1px solid #555; }
-a { color: #007bff; }
+body { background-color: #121212; color: #ff69b4; font-family: Arial, sans-serif; margin: 20px; }
+h1 { color: #90ee90; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #00FF00; padding: 10px; text-align: left; vertical-align: top; }
+th { background-color: #1a1a1a; }
+td { background-color: #1e1e1e; }
+a, button { color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; margin-right: 5px; }
+a:hover, button:hover { opacity: 0.85; }
+button.submit-btn { background-color: #004d00; } 
+button[disabled] { background-color: #333; cursor: not-allowed; opacity: 0.7; }
+input[type="file"] { color: #ff69b4; }
+iframe { border: none; width: 150px; height: 100px; }
+img { max-width: 150px; max-height: 100px; display: block; }
 </style>
 </head>
 <body>
-<div class="container mt-5">
-<h2>Tasks</h2>
-<h5>Affiliate Program</h5>
 
-<div class="alert alert-info mt-3">
-  This section will display tasks and affiliate programs.
-</div>
+<h1>Your Tasks</h1>
 
-<p>Other tasks coming soon...</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Title</th>
+<th>Type</th>
+<th>Reward</th>
+<th>Description</th>
+<th>Media</th>
+<th>Link</th>
+<th>Evidence</th>
+<th>Status</th>
+<th>Submit</th>
+</tr>
+</thead>
+<tbody>
+{% for t in tasks %}
+<tr>
+<td>{{ t.id }}</td>
+<td>{{ t.title }}</td>
+<td>{{ t.task_type }}</td>
+<td>{{ t.reward }}</td>
 
-<a href="{{ url_for('dashboard') }}" class="btn btn-green mt-3">Back to Dashboard</a>
-</div>
+<!-- Description -->
+<td>{{ t.description if t.description else '-' }}</td>
+
+<!-- Media (ADMIN FILE OR URL) -->
+<td>
+  {% if t.media_url %}
+    {% if t.media_url.startswith('http') %}
+      <a href="{{ t.media_url }}" target="_blank">Open Media</a>
+    {% else %}
+      <a href="{{ url_for('uploaded_file', filename=t.media_url) }}" download>Download File</a>
+    {% endif %}
+  {% elif t.submission_file and (t.submitted_by_id is none or t.submitted_by_id == 0) %}
+    <a href="{{ url_for('uploaded_file', filename=t.submission_file.split('uploads/')[-1]) }}" download>Download File</a>
+  {% else %}
+    -
+  {% endif %}
+</td>
+
+<!-- External Link -->
+<td>
+  {% if t.external_link %}
+    <a href="{{ t.external_link }}" target="_blank">Open Link</a>
+  {% else %}
+    -
+  {% endif %}
+</td>
+
+<!-- Evidence (USER SUBMISSION, VIEW ONLY) -->
+<td>
+  {% if t.submission_file and t.submitted_by_id == user.id %}
+    {% set file_ext = t.submission_file.split('.')[-1].lower() %}
+    {% if file_ext in ['jpg','jpeg','png','gif'] %}
+      <img src="{{ url_for('uploaded_file', filename=t.submission_file.split('uploads/')[-1]) }}" alt="Your Submission">
+    {% elif file_ext in ['pdf'] %}
+      <iframe src="{{ url_for('uploaded_file', filename=t.submission_file.split('uploads/')[-1]) }}"></iframe>
+    {% else %}
+      File uploaded
+    {% endif %}
+  {% else %}
+    -
+  {% endif %}
+</td>
+
+<!-- Status -->
+<td>
+  {% if t.approved %}
+    Approved
+  {% elif t.submission_file and t.submitted_by_id == user.id %}
+    Waiting for Approval
+  {% else %}
+    Pending
+  {% endif %}
+</td>
+
+<!-- Submit Button -->
+<td>
+  {% if t.submission_file and t.submitted_by_id == user.id %}
+    <button disabled>Submitted</button>
+  {% else %}
+    <form action="{{ url_for('submit_task', task_id=t.id) }}" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" {% if t.file_required %}required{% endif %}>
+      <button type="submit" class="submit-btn">Submit</button>
+    </form>
+  {% endif %}
+</td>
+
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
 </body>
 </html>

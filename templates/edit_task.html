@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Edit Task</title>
+<style>
+body { background-color: #121212; color: pink; font-family: Arial, sans-serif; margin: 20px; }
+h1 { color: lightgreen; }
+label { display: block; margin-top: 10px; font-weight: bold; }
+input, select, textarea, button { display: block; margin-top: 5px; padding: 5px; border-radius: 4px; width: 300px; }
+button { background-color: darkgreen; color: white; border: none; cursor: pointer; margin-top: 15px; }
+button:hover { background-color: #006400; }
+</style>
+</head>
+<body>
+
+<h1>Edit Task</h1>
+
+<form action="{{ url_for('add_task', task_id=task.id) }}" method="post">
+    <label>Title</label>
+    <input type="text" name="title" value="{{ task.title }}" required>
+
+    <label>Type</label>
+    <select name="task_type" required>
+        <option value="survey" {% if task.task_type=='survey' %}selected{% endif %}>Survey</option>
+        <option value="poll" {% if task.task_type=='poll' %}selected{% endif %}>Poll</option>
+        <option value="link" {% if task.task_type=='link' %}selected{% endif %}>Link</option>
+        <option value="media" {% if task.task_type=='media' %}selected{% endif %}>Media</option>
+    </select>
+
+    <label>Reward</label>
+    <input type="number" name="reward" step="0.01" value="{{ task.reward }}" required>
+
+    <label>Description</label>
+    <textarea name="description">{{ task.description }}</textarea>
+
+    <label>External Link</label>
+    <input type="text" name="external_link" value="{{ task.external_link }}">
+
+    <label>Media URL</label>
+    <input type="text" name="media_url" value="{{ task.media_url }}">
+
+    <label>Assign to User (optional)</label>
+    <select name="assigned_to_id">
+        <option value="">All Users</option>
+        {% for u in users %}
+        <option value="{{ u.id }}" {% if task.assigned_to_id==u.id %}selected{% endif %}>{{ u.full_name }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Update Task</button>
+</form>
+
+</body>
+</html>

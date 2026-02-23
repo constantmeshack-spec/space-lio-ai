@@ -1,45 +1,27 @@
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from app import db
+
+db = SQLAlchemy()
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(150), nullable=False)
+    phone = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    balance = db.Column(db.Float, default=0)
+    verified = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    verification_file = db.Column(db.String(200), nullable=True)
+
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    link = db.Column(db.String(500), nullable=True)  # link to outside
-    media_filename = db.Column(db.String(500), nullable=True)  # uploaded media
+    task_type = db.Column(db.String(20), nullable=False)  # media, link, survey, poll
+    external_link = db.Column(db.String(255), nullable=True)
+    media_url = db.Column(db.String(255), nullable=True)
     assigned_to_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    completed = db.Column(db.Boolean, default=False)
-
-class Affiliate(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), unique=True)
-    referral_code = db.Column(db.String(20), unique=True)
-    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
-    earnings = db.Column(db.Float, default=0.0)
-    is_active = db.Column(db.Boolean, default=False)  # 🔒 IMPORTANT
-@app.route("/tasks")
-def tasks():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
-    user = User.query.get(session["user_id"])
-
-    # 🔒 Check if user is an ACTIVE affiliate
-    affiliate = Affiliate.query.filter_by(
-        user_id=user.id,
-        is_active=True
-    ).first()
-
-    # Load tasks normally (affiliate is OPTIONAL)
-    tasks = Task.query.filter_by(
-        assigned_to_id=user.id,
-        completed=False
-    ).all()
-
-    return render_template(
-        "tasks.html",
-        user=user,
-        tasks=tasks,
-        affiliate=affiliate
-    )
+    reward = db.Column(db.Float, nullable=False)
+    file_required = db.Column(db.Boolean, default=False)
+    submitted_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)

@@ -1,83 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Verify Account</title>
-    <style>
-        body {
-            background-color: #0b0b0b;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-        }
+{% extends "base.html" %}
+{% block title %}Verify Your Account{% endblock %}
 
-        .container {
-            max-width: 420px;
-            margin: 90px auto;
-            padding: 25px;
-            background-color: #141414;
-            border-radius: 8px;
-            box-shadow: 0 0 12px rgba(0,0,0,0.8);
-        }
+{% block content %}
+<div style="background-color:#121212; padding:30px; border-radius:10px; max-width:600px; margin:40px auto; box-shadow:0 0 10px #000;">
+    
+    <!-- Main Header -->
+    <h1 style="color:#90ee90; text-align:center; margin-bottom:20px;">Account Verification</h1>
+    <hr style="border-color:#90ee90; margin-bottom:20px;">
 
-        h2 {
-            color: #00ff66; /* green header */
-            text-align: center;
-            margin-bottom: 10px;
-        }
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul style="list-style:none; padding-left:0;">
+                {% for msg in messages %}
+                    <li style="color:#ff69b4; background-color:#1a1a1a; padding:10px; border-radius:5px; margin-bottom:10px;">
+                        {{ msg }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
 
-        p {
-            color: #5bc0ff; /* sky blue subheader */
-            text-align: center;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
+    <!-- Waiting for approval -->
+    {% if user.verification_file %}
+        <div style="background-color:#1a1a1a; padding:20px; border-radius:8px; border:2px solid #90ee90;">
+            <h2 style="color:#1e90ff; margin-top:0;">Submission Received</h2>
+            <p style="color:#ff69b4;">Your verification document has been submitted successfully.</p>
+            <p style="color:#90ee90;"><strong>Waiting for admin approval...</strong></p>
+            <p style="color:#1e90ff;">Uploaded file: {{ user.verification_file | replace('uploads/', '') }}</p>
+        </div>
+    {% else %}
+        <!-- Upload form -->
+        <form action="{{ url_for('verify_account') }}" method="POST" enctype="multipart/form-data" style="margin-top:20px;">
+            <label for="id_file" style="color:#1e90ff; font-weight:bold;">Upload your ID document:</label><br><br>
+            <input type="file" name="id_file" id="id_file" required 
+                   style="padding:8px; border-radius:5px; border:none; width:100%; background-color:#1a1a1a; color:#fff;"><br><br>
+            <button type="submit" class="btn" style="background-color:#006400; color:#fff; padding:12px 25px; border-radius:6px; border:none; cursor:pointer;">
+                Submit Verification
+            </button>
+        </form>
+    {% endif %}
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #ffd700; /* yellow */
-            font-weight: bold;
-        }
+    <br>
+   
 
-        input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            background-color: #1e1e1e;
-            color: #ffffff;
-            border: 1px solid #333;
-            border-radius: 4px;
-        }
-
-        button {
-            width: 100%;
-            margin-top: 25px;
-            padding: 12px;
-            background-color: #ffd700; /* yellow */
-            color: #000;
-            font-weight: bold;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #ffea70;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h2>Account Verification</h2>
-    <p>Upload your national ID to complete verification</p>
-
-    <form method="POST" enctype="multipart/form-data">
-        <label for="id_document">Upload ID Document</label>
-        <input type="file" name="id_document" required>
-
-        <button type="submit">Submit Verification</button>
-    </form>
 </div>
-
-</body>
-</html>
+{% endblock %}

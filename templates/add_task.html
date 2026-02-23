@@ -1,21 +1,102 @@
-<h1>Add New Task</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Task</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ff69b4; /* pink text */
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #90ee90; /* light green */
+        }
+        label {
+            color: #ff69b4; /* pink */
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #90ee90; /* green lines */
+            background-color: #1e1e1e;
+            color: #ff69b4;
+        }
+        button {
+            background-color: #006400; /* dark green */
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #228b22;
+        }
+        a {
+            color: #ff69b4;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        hr {
+            border: 1px solid #90ee90;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
 
-<form method="POST">
-    <label>Title:</label><br>
-    <input type="text" name="title" required><br><br>
+<h1>Add Task</h1>
 
-    <label>Description:</label><br>
-    <textarea name="description"></textarea><br><br>
+<form method="POST" action="{{ url_for('add_task') }}" enctype="multipart/form-data">
 
-    <label>Assign to User:</label><br>
-    <select name="assigned_to">
-        <option value="">Unassigned</option>
+    <label>Title:</label>
+    <input type="text" name="title" required>
+
+    <label>Task Type:</label>
+    <select name="task_type" required>
+        <option value="media">Media</option>
+        <option value="link">Link</option>
+        <option value="survey">Survey</option>
+        <option value="poll">Poll</option>
+    </select>
+
+    <label>Reward:</label>
+    <input type="number" step="0.01" name="reward" required>
+
+    <label>Description (survey/poll):</label>
+    <textarea name="description"></textarea>
+
+    <label>External Link (link type):</label>
+    <input type="url" name="external_link">
+
+    <label>Media URL (media type):</label>
+    <input type="url" name="media_url">
+
+    <label>Assign to User (optional):</label>
+    <select name="assigned_to_id">
+        <option value="">All Users</option>
         {% for user in users %}
-        <option value="{{ user.id }}">{{ user.full_name }}</option>
+            <option value="{{ user.id }}">{{ user.full_name }}</option>
         {% endfor %}
-    </select><br><br>
+    </select>
+
+    <label>Require File Upload from User?</label>
+    <input type="checkbox" name="file_required" value="1"><br><br>
+
+    <label>Upload File / Media (optional):</label>
+    <input type="file" name="task_file"><br><br>
 
     <button type="submit">Add Task</button>
+
 </form>
 
-<a href="{{ url_for('admin_tasks') }}">Back to Tasks</a>
+<hr>
+<a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+
+</body>
+</html>

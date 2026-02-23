@@ -1,241 +1,348 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from functools import wraps
-from datetime import datetime
-import os, random, string
+import os
 
-# ------------------ APP CONFIG ------------------
+
+# ----------------- App Setup -----------------
 app = Flask(__name__)
-app.secret_key = "super-secret-key-change-this"
+from flask import send_from_directory
+import os
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Serve general uploads (task submissions)
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+# Serve verification documents separately
+@app.route('/uploads/verification/<path:filename>')
+def verification_file(filename):
+    verification_folder = os.path.join(app.config['UPLOAD_FOLDER'], "verification")
+    return send_from_directory(verification_folder, filename)
+
+app.secret_key = "supersecretkey"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///local.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
-
+app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "uploads")
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 db = SQLAlchemy(app)
 
-# ------------------ MODELS ------------------
+# ----------------- Models -----------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(150), nullable=False)
     phone = db.Column(db.String(20), unique=True, nullable=False)
-    email = db.Column(db.String(120))
-    id_number = db.Column(db.String(50), nullable=False)
-    country = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(200), nullable=False)
-
+    password = db.Column(db.String(255), nullable=False)
+    balance = db.Column(db.Float, default=0)
     verified = db.Column(db.Boolean, default=False)
-    verified_at = db.Column(db.DateTime)
-    id_document = db.Column(db.String(200))
-
-    balance = db.Column(db.Float, default=0.0)
     is_admin = db.Column(db.Boolean, default=False)
+    verification_file = db.Column(db.String(255), nullable=True)
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    link = db.Column(db.String(255), nullable=True)         # optional external link
-    media_file = db.Column(db.String(255), nullable=True)   # optional media
+    task_type = db.Column(db.String(20), nullable=False)
+    external_link = db.Column(db.String(500), nullable=True)
+    media_url = db.Column(db.String(500), nullable=True)
     assigned_to_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    completed = db.Column(db.Boolean, default=False)
+    reward = db.Column(db.Float, nullable=False)
+    submission_file = db.Column(db.String(255), nullable=True)
+    submitted_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    approved = db.Column(db.Boolean, default=False)
 
-class Affiliate(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    referral_code = db.Column(db.String(10), unique=True)
-    earnings = db.Column(db.Float, default=0.0)
-    is_active = db.Column(db.Boolean, default=False)
-
-# ------------------ HELPERS ------------------
+# ----------------- Helpers -----------------
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if "user_id" not in session:
+            flash("Please log in first.", "error")
             return redirect(url_for("login"))
         return f(*args, **kwargs)
     return wrapper
+
+from functools import wraps
+from flask import session, redirect, url_for, flash
 
 def admin_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if "user_id" not in session:
+        if not session.get("user_id"):
+            flash("Please log in first")
             return redirect(url_for("login"))
 
-        user = User.query.get(session["user_id"])
-        if not user or not user.is_admin:
+        if not session.get("is_admin"):
+            flash("Admin access only")
             return redirect(url_for("dashboard"))
+
         return f(*args, **kwargs)
     return wrapper
 
-def generate_referral_code():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-# ------------------ ROUTES ------------------
-
+# ----------------- Routes -----------------
 @app.route("/")
 def index():
     return redirect(url_for("login"))
 
-# REGISTER
-@app.route("/register", methods=["GET", "POST"])
+
+# ----------- Register -----------
+@app.route("/register", methods=["GET","POST"])
 def register():
-    if request.method == "POST":
-        user = User(
-            full_name=request.form["full_name"],
-            phone=request.form["phone"],
-            email=request.form.get("email"),
-            id_number=request.form["id_number"],
-            country=request.form["country"],
-            password=generate_password_hash(request.form["password"])
-        )
+    if request.method=="POST":
+        full_name = request.form.get("full_name")
+        phone = request.form.get("phone")
+        password = request.form.get("password")
+
+        if User.query.filter_by(phone=phone).first():
+            flash("Phone already registered.", "error")
+            return redirect(url_for("register"))
+
+        hashed_pw = generate_password_hash(password)
+        user = User(full_name=full_name, phone=phone, password=hashed_pw)
         db.session.add(user)
         db.session.commit()
         session["user_id"] = user.id
-        return redirect(url_for("verify"))
+        return redirect(url_for("verify_account"))
+
     return render_template("register.html")
 
-# LOGIN
+# ----------- Login -----------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        user = User.query.filter_by(phone=request.form["phone"]).first()
-        if not user or not check_password_hash(user.password, request.form["password"]):
-            flash("Invalid login")
+        phone = request.form.get("phone")
+        password = request.form.get("password")
+
+        user = User.query.filter_by(phone=phone).first()
+
+        if not user or not check_password_hash(user.password, password):
+            flash("Invalid login details", "danger")
             return redirect(url_for("login"))
 
+        # Set session variables
         session["user_id"] = user.id
-        return redirect(url_for("admin_dashboard" if user.is_admin else "dashboard"))
+        session["is_admin"] = user.is_admin
+
+        # 🔴 ADMIN FLOW
+        if user.is_admin:
+            return redirect(url_for("admin_dashboard"))
+
+        # 🔒 USER FLOW
+        if not user.verified:
+            return redirect(url_for("verify_account"))
+
+        # Optional: If you have a field `approved`, check it
+        if hasattr(user, "approved") and not user.approved:
+            return redirect(url_for("waiting_approval"))
+
+        return redirect(url_for("dashboard"))
+
     return render_template("login.html")
 
-# USER DASHBOARD
+@app.route("/submit_task/<int:task_id>", methods=["POST"])
+@login_required
+def submit_task(task_id):
+    task = Task.query.get_or_404(task_id)
+
+    uploaded_file = request.files.get("file")
+    if uploaded_file and uploaded_file.filename != "":
+        filename = secure_filename(uploaded_file.filename)
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        uploaded_file.save(filepath)
+        task.submission_file = filename  # <-- store ONLY filename
+
+    task.submitted_by_id = session["user_id"]
+    db.session.commit()
+    flash("Task submitted successfully!", "success")
+    return redirect(url_for("tasks"))
+
+# ----------- Logout -----------
+@app.route("/logout")
+@login_required
+def logout():
+    session.pop("user_id", None)
+    session.pop("is_admin", None)
+    flash("Logged out successfully.")
+    return redirect(url_for("login"))
+
+
+# ----------- Verify Account -----------
+@app.route("/verify", methods=["GET","POST"])
+@login_required
+def verify_account():
+    user = User.query.get(session["user_id"])
+    if user.verified:
+        return redirect(url_for("dashboard"))
+
+    if request.method=="POST":
+        id_file = request.files.get("id_file")
+        if id_file and id_file.filename != "":
+            filename = secure_filename(id_file.filename)
+            upload_folder = os.path.join(app.config["UPLOAD_FOLDER"], "verification")
+            os.makedirs(upload_folder, exist_ok=True)
+            filepath = os.path.join(upload_folder, filename)
+            id_file.save(filepath)
+            user.verification_file = filepath
+            db.session.commit()
+            flash("Verification uploaded. Waiting for admin approval.")
+            return redirect(url_for("verify_account"))
+        else:
+            flash("No file selected.", "error")
+    return render_template("verify_phone.html", user=user)
+
+# ----------- Dashboard -----------
+# User dashboard (general info)
 @app.route("/dashboard")
 @login_required
 def dashboard():
     user = User.query.get(session["user_id"])
-    if user.is_admin:
-        return redirect(url_for("admin_dashboard"))
     return render_template("dashboard.html", user=user)
 
-# TASKS
+# User tasks page
 @app.route("/tasks")
 @login_required
-def user_tasks():
+def tasks():
     user = User.query.get(session["user_id"])
-    tasks = Task.query.filter_by(assigned_to_id=user.id).all()
-    return render_template("tasks.html", tasks=tasks)
+    # Tasks assigned to user or global
+    tasks = Task.query.filter((Task.assigned_to_id==None) | (Task.assigned_to_id==user.id)).all()
+    return render_template("tasks.html", tasks=tasks, user=user)
 
-# VERIFY
-@app.route("/verify", methods=["GET", "POST"])
+
+@app.route("/withdraw")
 @login_required
-def verify():
-    user = User.query.get(session["user_id"])
-    if request.method == "POST":
-        file = request.files["id_document"]
-        filename = secure_filename(file.filename)
-        path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(path)
+def withdraw():
+    # Temporary placeholder
+    flash("Withdraw functionality will be available soon.", "info")
+    return redirect(url_for("dashboard"))
 
-        user.id_document = path
-        user.verified = True
-        user.verified_at = datetime.utcnow()
-        db.session.commit()
-        return redirect(url_for("dashboard"))
-    return render_template("verify_phone.html")
-@app.route("/admin/verify-user/<int:user_id>")
-@admin_required
-def admin_verify_user(user_id):
-    user = User.query.get(user_id)
-    if not user:
-        flash("User not found")
-        return redirect(url_for("admin_dashboard"))
-    
-    user.verified = True
-    user.verified_at = datetime.utcnow()
-    db.session.commit()
-    
-    flash(f"{user.full_name} has been verified ✅")
-    return redirect(url_for("admin_dashboard"))
-
-# ADMIN DASHBOARD
-@app.route("/admin/dashboard")
+# ----------- Admin Dashboard -----------
+@app.route("/admin_dashboard")
 @admin_required
 def admin_dashboard():
+    all_tasks = Task.query.all()
+    submitted_tasks = Task.query.filter(Task.submitted_by_id.isnot(None)).all()
     users = User.query.all()
-    tasks = Task.query.all()
-    return render_template("admin_dashboard.html", users=users, tasks=tasks)
-@app.route("/admin/tasks")
-@admin_required
-def admin_tasks():
-    tasks = Task.query.all()  # show all tasks
-    return render_template("admin_tasks.html", tasks=tasks)
 
-# ADD TASK
-@app.route("/admin/add-task", methods=["GET", "POST"])
+    return render_template(
+        "admin_dashboard.html",
+        tasks=all_tasks,
+        submitted_tasks=submitted_tasks,
+        users=users
+    )
+
+# ----------- Admin Verify/Reject Users -----------
+@app.route("/admin/verify_user/<int:user_id>")
+@admin_required
+def verify_user(user_id):
+    user = User.query.get_or_404(user_id)
+    user.verified = True
+    db.session.commit()
+    flash(f"{user.full_name} verified.")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/reject_user/<int:user_id>")
+@admin_required
+def reject_user(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.verification_file and os.path.exists(user.verification_file):
+        os.remove(user.verification_file)
+    user.verification_file = None
+    db.session.commit()
+    flash(f"{user.full_name} rejected.")
+    return redirect(url_for("admin_dashboard"))
+
+
+# ----------- Admin Add Task -----------
+@app.route("/admin/add_task", methods=["GET","POST"])
 @admin_required
 def add_task():
-    users = User.query.filter_by(is_admin=False).all()
+    users = User.query.filter_by(verified=True).all()
     if request.method == "POST":
+        title = request.form.get("title")
+        task_type = request.form.get("task_type")
+        reward = request.form.get("reward")
+        description = request.form.get("description")
+        external_link = request.form.get("external_link")
+        media_url = request.form.get("media_url")
+        assigned_to_id = request.form.get("assigned_to_id")
+        file_required = True if request.form.get("file_required") else False
+
+        # Handle admin-uploaded file
+        uploaded_file = request.files.get("task_file")
+        admin_filename = None
+        if uploaded_file and uploaded_file.filename != "":
+            admin_filename = secure_filename(uploaded_file.filename)
+            uploaded_file.save(os.path.join(app.config["UPLOAD_FOLDER"], admin_filename))
+
+        # Validate required fields
+        if not title or not task_type or not reward:
+            flash("Missing required fields.", "error")
+            return redirect(url_for("add_task"))
+
+        # Create task
         task = Task(
-            title=request.form["title"],
-            description=request.form.get("description"),
-            assigned_to_id=request.form["assigned_to_id"]
+            title=title,
+            task_type=task_type,
+            reward=float(reward),
+            description=description if task_type in ["survey", "poll"] else None,
+            external_link=external_link if task_type=="link" else None,
+            media_url=media_url if media_url else None,  # optional external link or media URL
+            assigned_to_id=int(assigned_to_id) if assigned_to_id else None,
+            submission_file=admin_filename,   # admin-uploaded file
+            # Note: submitted_by_id stays None for admin-uploaded files
         )
+
         db.session.add(task)
         db.session.commit()
+        flash("Task added successfully.")
         return redirect(url_for("admin_dashboard"))
+
     return render_template("add_task.html", users=users)
 
-# JOIN AFFILIATE (PAYMENT REQUIRED)
-@app.route("/join-affiliate", methods=["GET", "POST"])
-@login_required
-def join_affiliate():
-    user = User.query.get(session["user_id"])
-    affiliate = Affiliate.query.filter_by(user_id=user.id).first()
 
+# Edit Task
+@app.route("/admin/edit_task/<int:task_id>", methods=["GET", "POST"])
+@admin_required
+def edit_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    users = User.query.filter_by(verified=True).all()
     if request.method == "POST":
-        if not affiliate:
-            affiliate = Affiliate(
-                user_id=user.id,
-                referral_code=generate_referral_code(),
-                is_active=False
-            )
-            db.session.add(affiliate)
-            db.session.commit()
-        flash("Payment required: KES 200")
-        return redirect(url_for("dashboard"))
+        task.title = request.form.get("title")
+        task.task_type = request.form.get("task_type")
+        task.reward = float(request.form.get("reward") or task.reward)
+        task.description = request.form.get("description")
+        assigned_to_id = request.form.get("assigned_to_id")
+        task.assigned_to_id = int(assigned_to_id) if assigned_to_id else None
+        db.session.commit()
+        flash("Task updated successfully.")
+        return redirect(url_for("admin_dashboard"))
+    return render_template("edit_task.html", task=task, users=users)
 
-    return render_template("join_affiliate.html")
+# Delete Task
+@app.route("/admin/delete_task/<int:task_id>")
+@admin_required
+def delete_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    db.session.delete(task)
+    db.session.commit()
+    flash("Task deleted successfully.")
+    return redirect(url_for("admin_dashboard"))
 
-# AFFILIATE DASHBOARD
-@app.route("/affiliate/dashboard")
-@login_required
-def affiliate_dashboard():
-    affiliate = Affiliate.query.filter_by(
-        user_id=session["user_id"],
-        is_active=True
-    ).first()
+# ----------- Admin Approve Task Submission -----------
+@app.route("/admin/approve_task/<int:task_id>")
+@admin_required
+def approve_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    task.approved = True
+    if task.assigned_to_id:
+        user = User.query.get(task.assigned_to_id)
+        user.balance += task.reward
+    db.session.commit()
+    flash(f"Task '{task.title}' approved and reward added to user balance.")
+    return redirect(url_for("admin_dashboard"))
 
-    if not affiliate:
-        return redirect(url_for("join_affiliate"))
-
-    return render_template("affiliate_dashboard.html", affiliate=affiliate)
-
-# LOGOUT
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
-
-# ------------------ RUN ------------------
+# ----------------- Run App -----------------
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    with app.app_context():
+        db.create_all()
+    app.run(host="0.0.0.0", port=5000, debug=True)

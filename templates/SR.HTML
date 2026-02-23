@@ -93,10 +93,10 @@ img {
     <td>{{ submitter[0].phone if submitter else "N/A" }}</td>
     <td>
         {% if task.submission_file %}
-            {% set file_name = task.submission_file.split('/')[-1] %}
-            <a href="{{ url_for('uploaded_file', filename=file_name) }}" target="_blank">
-                View / Download
-            </a>
+<a href="{{ url_for('uploaded_file', filename=task.submission_file) }}" target="_blank">
+    View / Download
+</a>
+
         {% else %}
             -
         {% endif %}
