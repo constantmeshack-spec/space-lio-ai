@@ -344,12 +344,31 @@ def delete_task(task_id):
 @admin_required
 def approve_task(task_id):
     task = Task.query.get_or_404(task_id)
+
+    # 🚫 Prevent double approval
+    if task.approved:
+        flash("Task already approved.", "warning")
+        return redirect(url_for("admin_dashboard"))
+
+    # 🚫 Ensure task was submitted
+    if not task.submitted_by_id:
+        flash("This task has not been submitted yet.", "danger")
+        return redirect(url_for("admin_dashboard"))
+
+    # ✅ Get the actual submitting user
+    user = User.query.get(task.submitted_by_id)
+
+    if not user:
+        flash("Submitting user not found.", "danger")
+        return redirect(url_for("admin_dashboard"))
+
+    # ✅ Approve + pay (fake balance)
     task.approved = True
-    if task.assigned_to_id:
-        user = User.query.get(task.assigned_to_id)
-        user.balance += task.reward
+    user.balance += task.reward
+
     db.session.commit()
-    flash(f"Task '{task.title}' approved and reward added to user balance.")
+
+    flash(f"Task '{task.title}' approved. {task.reward} added to {user.full_name}'s balance.", "success")
     return redirect(url_for("admin_dashboard"))
 
 # ----------------- Run App -----------------
