@@ -1,49 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8">
-<title>User Tasks</title>
+<title>
+   <title><title>{{ APP_NAME }}</title>
+
+<h1>{{ APP_NAME }}</h1>
 <style>
-  /* 📱 Mobile layout fixes */
-@media (max-width: 600px) {
-    body {
-        margin: 10px;
-        font-size: 14px;
-    }
-
-    h1, h2 {
-        font-size: 18px;
-    }
-
-    table {
-        font-size: 13px;
-    }
-
-    th, td {
-        padding: 6px;
-    }
-
-    a, button {
-        padding: 4px 8px;
-        font-size: 13px;
-    }
-}
-
-body { background-color: #121212; color: #ff69b4; font-family: Arial, sans-serif; margin: 20px; }
-h1 { color: #90ee90; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-th, td { border: 1px solid #00FF00; padding: 10px; text-align: left; vertical-align: top; }
-th { background-color: #1a1a1a; }
-td { background-color: #1e1e1e; }
-a, button { color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; margin-right: 5px; }
-a:hover, button:hover { opacity: 0.85; }
-button.submit-btn { background-color: #004d00; } 
-button[disabled] { background-color: #333; cursor: not-allowed; opacity: 0.7; }
-input[type="file"] { color: #ff69b4; }
-iframe { border: none; width: 150px; height: 100px; }
-img { max-width: 150px; max-height: 100px; display: block; }
+  @media (max-width: 600px) {
+    body { margin: 10px; font-size: 14px; }
+    h1, h2 { font-size: 18px; }
+    table { font-size: 13px; }
+    th, td { padding: 6px; }
+    a, button { padding: 4px 8px; font-size: 13px; }
+  }
+  body { background-color: #121212; color: #ff69b4; font-family: Arial, sans-serif; margin: 20px; }
+  h1 { color: #90ee90; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #00FF00; padding: 10px; text-align: left; vertical-align: top; }
+  th { background-color: #1a1a1a; }
+  td { background-color: #1e1e1e; }
+  a, button { color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; margin-right: 5px; }
+  a:hover, button:hover { opacity: 0.85; }
+  button.submit-btn { background-color: #004d00; } 
+  button[disabled] { background-color: #333; cursor: not-allowed; opacity: 0.7; }
+  input[type="file"] { color: #ff69b4; }
+  iframe { border: none; width: 150px; height: 100px; }
+  img { max-width: 150px; max-height: 100px; display: block; }
 </style>
 </head>
 <body>
@@ -76,7 +60,7 @@ img { max-width: 150px; max-height: 100px; display: block; }
 <!-- Description -->
 <td>{{ t.description if t.description else '-' }}</td>
 
-<!-- Media (ADMIN FILE OR URL) -->
+<!-- Media -->
 <td>
   {% if t.media_url %}
     {% if t.media_url.startswith('http') %}
@@ -84,8 +68,8 @@ img { max-width: 150px; max-height: 100px; display: block; }
     {% else %}
       <a href="{{ url_for('uploaded_file', filename=t.media_url) }}" download>Download File</a>
     {% endif %}
-  {% elif t.submission_file and (t.submitted_by_id is none or t.submitted_by_id == 0) %}
-    <a href="{{ url_for('uploaded_file', filename=t.submission_file.split('uploads/')[-1]) }}" download>Download File</a>
+  {% elif t.admin_file %}
+      <a href="{{ url_for('uploaded_file', filename=t.admin_file) }}" download>Download File</a>
   {% else %}
     -
   {% endif %}
@@ -102,41 +86,45 @@ img { max-width: 150px; max-height: 100px; display: block; }
 
 <!-- Evidence (USER SUBMISSION, VIEW ONLY) -->
 <td>
-  {% if t.submission_file and t.submitted_by_id == user.id %}
-    {% set file_ext = t.submission_file.split('.')[-1].lower() %}
-    {% if file_ext in ['jpg','jpeg','png','gif'] %}
-      <img src="{{ url_for('uploaded_file', filename=t.submission_file.split('uploads/')[-1]) }}" alt="Your Submission">
-    {% elif file_ext in ['pdf'] %}
-      <iframe src="{{ url_for('uploaded_file', filename=t.submission_file.split('uploads/')[-1]) }}"></iframe>
-    {% else %}
-      File uploaded
-    {% endif %}
+{% set user_submission = t.submissions | selectattr("user_id","equalto",user.id) | list %}
+{% if user_submission %}
+  {% set file = user_submission[0].submission_file %}
+  {% set file_ext = file.split('.')[-1].lower() %}
+  {% if file_ext in ['jpg','jpeg','png','gif'] %}
+    <img src="{{ url_for('uploaded_file', filename=file) }}" alt="Your Submission">
+  {% elif file_ext in ['pdf'] %}
+    <iframe src="{{ url_for('uploaded_file', filename=file) }}"></iframe>
   {% else %}
-    -
+    File uploaded
   {% endif %}
+{% else %}
+  -
+{% endif %}
 </td>
 
 <!-- Status -->
 <td>
-  {% if t.approved %}
+{% if user_submission %}
+  {% if user_submission[0].approved %}
     Approved
-  {% elif t.submission_file and t.submitted_by_id == user.id %}
-    Waiting for Approval
   {% else %}
-    Pending
+    Waiting for Approval
   {% endif %}
+{% else %}
+  Pending
+{% endif %}
 </td>
 
 <!-- Submit Button -->
 <td>
-  {% if t.submission_file and t.submitted_by_id == user.id %}
-    <button disabled>Submitted</button>
-  {% else %}
-    <form action="{{ url_for('submit_task', task_id=t.id) }}" method="post" enctype="multipart/form-data">
-      <input type="file" name="file" {% if t.file_required %}required{% endif %}>
-      <button type="submit" class="submit-btn">Submit</button>
-    </form>
-  {% endif %}
+{% if user_submission %}
+  <button disabled>Submitted</button>
+{% else %}
+  <form action="{{ url_for('submit_task', task_id=t.id) }}" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" {% if t.file_required %}required{% endif %}>
+    <button type="submit" class="submit-btn">Submit</button>
+  </form>
+{% endif %}
 </td>
 
 </tr>
@@ -146,3 +134,7 @@ img { max-width: 150px; max-height: 100px; display: block; }
 
 </body>
 </html>
+<footer>
+    © 2026 {{ APP_NAME }}. All rights reserved.
+    CEO: MESHACK CONSTANT
+</footer>
