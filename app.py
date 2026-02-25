@@ -144,17 +144,28 @@ def login():
 def submit_task(task_id):
     task = Task.query.get_or_404(task_id)
 
+    # 🚫 STEP 1: BLOCK DOUBLE SUBMISSION
+    if task.submitted_by_id == session["user_id"]:
+        flash("You have already submitted this task.", "warning")
+        return redirect(url_for("tasks"))
+
+    # 📁 STEP 2: HANDLE FILE UPLOAD
     uploaded_file = request.files.get("file")
     if uploaded_file and uploaded_file.filename != "":
         filename = secure_filename(uploaded_file.filename)
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         uploaded_file.save(filepath)
-        task.submission_file = filename  # <-- store ONLY filename
 
-    task.submitted_by_id = session["user_id"]
-    db.session.commit()
-    flash("Task submitted successfully!", "success")
+        task.submission_file = filename  # store filename only
+        task.submitted_by_id = session["user_id"]  # 🔒 LOCK IT
+
+        db.session.commit()
+        flash("Task submitted successfully!", "success")
+    else:
+        flash("Please upload a file.", "error")
+
     return redirect(url_for("tasks"))
+
 
 # ----------- Logout -----------
 @app.route("/logout")
@@ -284,9 +295,9 @@ def add_task():
             title=title,
             task_type=task_type,
             reward=float(reward),
-            description=description if task_type in ["survey", "poll"] else None,
-            external_link=external_link if task_type=="link" else None,
-            media_url=media_url if media_url else None,  # optional external link or media URL
+            description=description if task_type in ["survey", "media", "link", "poll"] else None,
+            external_link=external_link if task_type in ["link","media", "poll", "survey"] else None,
+            media_url=media_url if media_url in ["link","media", "poll", "survey"] else None,  # optional external link or media URL
             assigned_to_id=int(assigned_to_id) if assigned_to_id else None,
             submission_file=admin_filename,   # admin-uploaded file
             # Note: submitted_by_id stays None for admin-uploaded files
