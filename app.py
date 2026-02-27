@@ -8,13 +8,32 @@ import os
 # ----------------- App Setup -----------------
 app = Flask(__name__)
 
-app.secret_key = "supersecretkey"
+# Secret key (use Render env variable in production)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
+
 app.config["APP_NAME"] = "SPACE LIO AI"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///local.db"
+
+# -------- DATABASE CONFIG (PostgreSQL on Render, SQLite locally) --------
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    # Render sometimes provides postgres:// instead of postgresql://
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+else:
+    # Local development fallback
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///local.db"
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# -------- Uploads --------
 app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "uploads")
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 db = SQLAlchemy(app)
+
 
 # Serve general uploads (task submissions)
 @app.route('/uploads/<path:filename>')
@@ -348,5 +367,4 @@ def approve_task(submission_id):
 # ----------------- Run App -----------------
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+       app.run(host="0.0.0.0", port=5000, debug=True)
