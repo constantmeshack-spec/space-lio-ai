@@ -66,7 +66,6 @@ img {
     <a href="{{ url_for('admin_dashboard') }}">Refresh Dashboard</a>
 </div>
 
-
 <!-- ================= TASK SUBMISSIONS ================= -->
 <h2>Task Submissions</h2>
 
@@ -201,15 +200,14 @@ img {
 <table>
 <thead>
 <tr>
-    <th>#</th>
+    <th>ID</th>
     <th>Name</th>
     <th>Phone</th>
     <th>Balance</th>
     <th>Affiliate?</th>
     <th>Referral Code</th>
-    <th>Earnings</th>
+    <th>Affiliate Earnings</th>
     <th>Admin</th>
-    <th>Action</th>
 </tr>
 </thead>
 <tbody>
@@ -225,18 +223,6 @@ img {
     <td>{{ u.referral_code if u.referral_code else "-" }}</td>
     <td>{{ u.earnings }}</td>
     <td>{{ "Yes" if u.is_admin else "No" }}</td>
-    <td>
-        {% if u.is_affiliate %}
-        <form method="POST"
-              action="{{ url_for('reset_affiliate', user_id=u.id) }}"
-              onsubmit="return confirm('Reset affiliate status for this user?');"
-              style="display:inline;">
-            <button type="submit">Reset Affiliate</button>
-        </form>
-        {% else %}
-        -
-        {% endif %}
-    </td>
 </tr>
 {% endif %}
 {% endfor %}

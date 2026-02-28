@@ -3,96 +3,43 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>Join Affiliate Program</title>
+    <title>Join Affiliate - {{ APP_NAME }}</title>
     <style>
-        /* 📱 Mobile layout fixes */
-@media (max-width: 600px) {
-    body {
-        margin: 10px;
-        font-size: 14px;
-    }
+        /* Mobile fixes */
+        @media (max-width: 600px) {
+            body { margin: 10px; font-size: 14px; }
+            h1, h2 { font-size: 18px; }
+            input, button { font-size: 13px; padding: 6px; }
+        }
 
-    h1, h2 {
-        font-size: 18px;
-    }
-
-    table {
-        font-size: 13px;
-    }
-
-    th, td {
-        padding: 6px;
-    }
-
-    a, button {
-        padding: 4px 8px;
-        font-size: 13px;
-    }
-}
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e; /* dark background */
-            color: yellow; /* default text */
-        }
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #2c2c2c;
-            border-radius: 8px;
-        }
-        h2 {
-            color: green; /* header */
-        }
-        p.subheader, label {
-            color: skyblue; /* subheader / info */
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0 15px 0;
-            border-radius: 4px;
-            border: 1px solid #555;
-            background-color: #1e1e1e;
-            color: yellow;
-        }
-        button {
-            background-color: green;
-            color: yellow;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: darkgreen;
-        }
-        a {
-            text-decoration: none;
-            color: yellow;
-            display: inline-block;
-            margin-top: 20px;
-        }
+        body { background-color: #121212; color: white; font-family: Arial, sans-serif; }
+        h1 { color: lightgreen; }
+        h2 { color: blue; }
+        .card { border: 1px solid green; padding: 15px; margin: 15px 0; max-width: 500px; }
+        input { width: 100%; padding: 8px; margin: 8px 0; border-radius: 4px; border: 1px solid #444; background-color: #1e1e1e; color: white; }
+        .btn { background-color: darkgreen; color: white; padding: 8px 12px; border: none; border-radius: 4px; text-decoration: none; cursor: pointer; }
+        .btn:hover { background-color: #006400; }
+        a { color: white; text-decoration: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Affiliate Program</h2>
-        <p class="subheader">Cost to join: KES {{ cost }}</p>
+    <h1>Join Affiliate Programme</h1>
+    <div class="card">
+        <h2>Enter Details</h2>
+        <form method="POST" action="{{ url_for('process_affiliate_join') }}">
+            <label for="referral_code">Referral Code (Optional):</label>
+            <input type="text" id="referral_code" name="referral_code" placeholder="Enter referral code if any">
 
-        {% if not user_is_affiliate %}
-        <form method="POST">
-            <label for="referral">Referral Code (optional):</label>
-            <input type="text" name="referral" maxlength="6" placeholder="Enter code">
-            <button type="submit">Join Affiliate Program</button>
+           <label for="phone">Phone Number (format, e.g., 2547XXXXXXXX):</label>
+           <input type="text" name="phone" id="phone" 
+                  pattern="2547[0-9]{8}" 
+                  title="Phone number must start with 2547 followed by 8 digits" 
+                  required>
+
+            <button type="submit" class="btn">Join & Pay KES 100</button>
         </form>
-        {% else %}
-        <p>You have already joined the affiliate program.</p>
-        <p>Your referral code: <strong>{{ referral_code }}</strong></p>
-        {% endif %}
-
-        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
     </div>
+
+    <p><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
 </body>
 </html>

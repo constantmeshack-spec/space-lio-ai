@@ -69,7 +69,7 @@
       <a href="{{ url_for('uploaded_file', filename=t.media_url) }}" download>Download File</a>
     {% endif %}
   {% elif t.admin_file %}
-      <a href="{{ url_for('uploaded_file', filename=t.admin_file) }}" download>Download File</a>
+      <a href="{{ url_for('task_file', filename=t.admin_file) }}" download>Download File</a>
   {% else %}
     -
   {% endif %}

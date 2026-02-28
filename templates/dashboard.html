@@ -2,72 +2,55 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta charset="UTF-8">
-<title><title>{{ APP_NAME }}</title>
+    <meta charset="UTF-8">
+    <title>{{ APP_NAME }}</title>
+    <style>
+        /* 📱 Mobile layout fixes */
+        @media (max-width: 600px) {
+            body { margin: 10px; font-size: 14px; }
+            h1, h2 { font-size: 18px; }
+            table { font-size: 13px; }
+            th, td { padding: 6px; }
+            a, button { padding: 4px 8px; font-size: 13px; }
+        }
 
-<h1>{{ APP_NAME }}</h1>
-User Dashboard</title>
-<style>
-    /* 📱 Mobile layout fixes */
-@media (max-width: 600px) {
-    body {
-        margin: 10px;
-        font-size: 14px;
-    }
-
-    h1, h2 {
-        font-size: 18px;
-    }
-
-    table {
-        font-size: 13px;
-    }
-
-    th, td {
-        padding: 6px;
-    }
-
-    a, button {
-        padding: 4px 8px;
-        font-size: 13px;
-    }
-}
-
-body { background-color: #121212; color: pink; font-family: Arial, sans-serif; }
-h1 { color: lightgreen; }
-h2 { color: blue; }
-.card { border: 1px solid green; padding: 15px; margin: 15px 0; }
-.btn { background-color: darkgreen; color: white; padding: 8px 12px; border: none; border-radius: 4px; text-decoration: none; cursor: pointer; }
-.btn:hover { background-color: #006400; }
-p { margin: 5px 0; }
-</style>
+        body { background-color: #121212; color: white; font-family: Arial, sans-serif; }
+        h1 { color: lightgreen; }
+        h2 { color: blue; }
+        .card { border: 1px solid green; padding: 15px; margin: 15px 0; }
+        .btn { background-color: darkgreen; color: white; padding: 8px 12px; border: none; border-radius: 4px; text-decoration: none; cursor: pointer; }
+        .btn:hover { background-color: #006400; }
+        p { margin: 5px 0; }
+    </style>
 </head>
 <body>
-<h1>Welcome, {{ user.full_name }}</h1>
+    <h1>Welcome, {{ user.full_name }}</h1>
 
-<div class="card">
-<h2>User Profile</h2>
-<p><strong>Full Name:</strong> {{ user.full_name }}</p>
-<p><strong>Phone:</strong> {{ user.phone }}</p>
-<p><strong>Verified:</strong> {{ 'Yes' if user.verified else 'No' }}</p>
-</div>
+    <div class="card">
+        <h2>User Profile</h2>
+        <p><strong>Full Name:</strong> {{ user.full_name }}</p>
+        <p><strong>Phone:</strong> {{ user.phone }}</p>
+        <p><strong>Verified:</strong> {{ 'Yes' if user.verified else 'No' }}</p>
+    </div>
 
-<div class="card">
-<h2>Accounts</h2>
-<p><strong>Balance:</strong> KES {{ user.balance }}</p>
-<br
-<p><a class="btn" href="{{ url_for('withdraw') }}">Withdraw Balance</a></p>
-</div>
+    <div class="card">
+        <h2>Accounts</h2>
+        <p><strong>Balance:</strong> KES {{ user.balance }}</p>
+        <br
+        <p><a class="btn" href="{{ url_for('withdraw') }}">Withdraw Balance</a></p>
+    </div>
 
-<div class="card">
-<h2>Quick Links</h2>
-<p><a class="btn" href="{{ url_for('tasks') }}">Go to Tasks</a></p>
-<br
-<p><a class="btn" href="{{ url_for('logout') }}">Logout</a></p>
-</div>
+    <div class="card">
+        <h2>Quick Links</h2>
+        <p><a class="btn" href="{{ url_for('tasks') }}">Go to Tasks</a></p>
+        <br
+        <p><a class="btn" href="{{ url_for('affiliate') }}">Affiliate Programme</a></p>
+        <br
+        <p><a class="btn" href="{{ url_for('logout') }}">Logout</a></p>
+    </div>
 </body>
-</html>
 <footer>
     © 2026 {{ APP_NAME }}. All rights reserved.
     CEO: MESHACK CONSTANT
 </footer>
+</html>

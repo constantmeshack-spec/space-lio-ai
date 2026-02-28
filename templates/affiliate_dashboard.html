@@ -3,47 +3,21 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>Affiliate Dashboard</title>
+    <title>Affiliate Dashboard - {{ APP_NAME }}</title>
     <style>
-        /* 📱 Mobile layout fixes */
-@media (max-width: 600px) {
-    body {
-        margin: 10px;
-        font-size: 14px;
-    }
-
-    h1, h2 {
-        font-size: 18px;
-    }
-
-    table {
-        font-size: 13px;
-    }
-
-    th, td {
-        padding: 6px;
-    }
-
-    a, button {
-        padding: 4px 8px;
-        font-size: 13px;
-    }
-}
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e; /* dark background */
-            color: yellow; /* default text */
+        /* Mobile fixes */
+        @media (max-width: 600px) {
+            body { margin: 10px; font-size: 14px; }
+            h1, h2 { font-size: 18px; }
+            table { font-size: 13px; }
+            th, td { padding: 6px; }
+            a, button { padding: 4px 8px; font-size: 13px; }
         }
-        h2 {
-            color: green; /* header */
-        }
-        h3, p.subheader {
-            color: skyblue; /* subheader / info */
-        }
-        p, a, span {
-            color: yellow; /* other text/buttons */
-        }
+
+        body { font-family: Arial, sans-serif; background-color: #121212; color: white; }
+        h2 { color: green; }
+        h3, p.subheader { color: skyblue; }
+        p, a, span { color: white; }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -55,24 +29,16 @@
             border: 1px solid #444;
             text-align: left;
         }
-        th {
-            background-color: #333;
-            color: green; /* header of table */
-        }
+        th { background-color: #333; color: green; }
         button {
-            background-color: green;
-            color: yellow;
+            background-color: darkgreen;
+            color: white;
             border: none;
             padding: 5px 10px;
             cursor: pointer;
         }
-        button:hover {
-            background-color: darkgreen;
-        }
-        a {
-            text-decoration: none;
-            color: yellow;
-        }
+        button:hover { background-color: #006400; }
+        a { text-decoration: none; color: white; }
         .container {
             max-width: 900px;
             margin: 50px auto;
@@ -88,13 +54,13 @@
         <p class="subheader">Your Referral Code: <strong>{{ referral_code }}</strong></p>
         <p class="subheader">Total Earnings: KES {{ earnings }}</p>
 
-{% if earnings > 0 %}
-<form method="POST" action="{{ url_for('affiliate_withdraw') }}">
-    <button type="submit">Withdraw Earnings</button>
-</form>
-{% else %}
-<p>No earnings to withdraw yet.</p>
-{% endif %}
+        {% if earnings > 0 %}
+        <form method="POST" action="{{ url_for('affiliate_withdraw') }}">
+            <button type="submit">Withdraw Earnings</button>
+        </form>
+        {% else %}
+        <p>No earnings to withdraw yet.</p>
+        {% endif %}
 
         <p class="subheader">Number of People You Invited: {{ invited_count }}</p>
 
@@ -114,7 +80,7 @@
                 <tr>
                     <td>{{ m.full_name }}</td>
                     <td>{{ m.phone }}</td>
-                    <td>{{ m.joined_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ m.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
                     <td>{% if m.is_affiliate %}Yes{% else %}No{% endif %}</td>
                 </tr>
                 {% endfor %}
