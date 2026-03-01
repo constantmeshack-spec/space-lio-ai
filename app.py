@@ -778,17 +778,14 @@ def paystack_webhook():
 
 @app.route("/__reset_all_users__", methods=["POST"])
 def reset_all_users():
-    from models import User  # adjust if your import path differs
-
     try:
-        User.query.delete()
+        db.session.execute("TRUNCATE TABLE \"user\" RESTART IDENTITY CASCADE;")
         db.session.commit()
         return "ALL USERS DELETED", 200
     except Exception as e:
         db.session.rollback()
-        return str(e), 500
+        return f"ERROR: {str(e)}", 500
 
-   
 # ----------------- Run App -----------------
 if __name__ == "__main__":
        app.run(host="0.0.0.0", port=5000, debug=False)
