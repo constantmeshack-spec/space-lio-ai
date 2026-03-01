@@ -285,12 +285,6 @@ def withdraw():
     return redirect(url_for("dashboard"))
 
 # ----------- Admin Dashboard -----------
-@app.route("/admin/reset-users")
-def reset_users():
-    User.query.delete()
-    db.session.commit()
-    return "All users deleted"
-
 @app.route("/admin_dashboard")
 @admin_required
 def admin_dashboard():
@@ -781,6 +775,19 @@ def paystack_webhook():
         db.session.commit()
 
     return "OK", 200
+
+@app.route("/__reset_all_users__", methods=["POST"])
+def reset_all_users():
+    from models import User  # adjust if your import path differs
+
+    try:
+        User.query.delete()
+        db.session.commit()
+        return "ALL USERS DELETED", 200
+    except Exception as e:
+        db.session.rollback()
+        return str(e), 500
+
    
 # ----------------- Run App -----------------
 if __name__ == "__main__":
