@@ -775,7 +775,8 @@ def paystack_webhook():
         db.session.commit()
 
     return "OK", 200
-
+    
+from sqlalchemy import text
 @app.route("/__reset_all_users__", methods=["POST"])
 def reset_all_users():
     try:
