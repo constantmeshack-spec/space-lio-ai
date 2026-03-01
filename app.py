@@ -542,93 +542,50 @@ def process_affiliate_join():
     # Redirect to Paystack checkout
     return redirect(resp_json["data"]["authorization_url"])
 
-import hmac
-import hashlib
-from flask import request
-
-@app.route("/affiliate/complete", methods=["POST"])
+@app.route("/affiliate/complete", methods=["GET"])
+@login_required
 def affiliate_complete():
-    """
-    Paystack webhook for affiliate joining.
-    Verifies signature, activates affiliate, logs transaction, and gives referral bonus.
-    """
-    paystack_secret = os.environ.get("PAYSTACK_SECRET_KEY")
-    signature = request.headers.get("X-Paystack-Signature", "")
-    payload = request.get_data()
+    reference = request.args.get("reference")
 
-    # 1️⃣ Verify webhook signature
-    computed = hmac.new(
-        key=paystack_secret.encode(),
-        msg=payload,
-        digestmod=hashlib.sha512
-    ).hexdigest()
+    if not reference:
+        flash("Payment reference missing.", "error")
+        return redirect(url_for("join_affiliate"))
 
-    if not hmac.compare_digest(computed, signature):
-        print("⚠️ Invalid Paystack signature")
-        return {"status": "error", "message": "Invalid signature"}, 400
+    PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY")
 
-    # 2️⃣ Parse webhook data
-    data = request.json
-    event = data.get("event")
-    payment_data = data.get("data", {})
+    headers = {
+        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"
+    }
 
-    # Only handle successful charges
-    if event != "charge.success":
-        return {"status": "ignored"}, 200
+    # 1️⃣ Verify payment with Paystack
+    verify_url = f"https://api.paystack.co/transaction/verify/{reference}"
+    response = requests.get(verify_url, headers=headers)
+    result = response.json()
 
-    # 3️⃣ Identify the user
-    metadata = payment_data.get("metadata", {})
-    user_id = metadata.get("user_id")  # Make sure you sent user_id in Paystack metadata
-    if not user_id:
-        print("⚠️ No user_id in metadata")
-        return {"status": "error", "message": "Missing user_id"}, 400
+    if not result.get("status"):
+        flash("Payment verification failed.", "error")
+        return redirect(url_for("join_affiliate"))
 
-    user = User.query.get(user_id)
-    if not user:
-        print(f"⚠️ User not found: {user_id}")
-        return {"status": "error", "message": "User not found"}, 404
+    data = result["data"]
 
-    # 4️⃣ Activate affiliate if not already
+    if data["status"] != "success":
+        flash("Payment not successful.", "error")
+        return redirect(url_for("join_affiliate"))
+
+    # 2️⃣ Activate affiliate
+    user = User.query.get(session["user_id"])
+
     if not user.is_affiliate:
         user.is_affiliate = True
 
-        # Generate unique referral code
-        count = User.query.filter_by(is_affiliate=True).count()
-        user.referral_code = f"UCSLAA{count + 1}"
-
-        # Add transaction record
-        amount_paid = float(payment_data.get("amount", 0)) / 100  # Paystack sends in kobo
-        transaction = AffiliateTransaction(
-            user_id=user.id,
-            type="join",
-            amount=amount_paid,
-            status="completed"
-        )
-        db.session.add(transaction)
-
-        # 5️⃣ Handle referral bonus
-        inviter_code = metadata.get("referral_code")
-        if inviter_code:
-            inviter = User.query.filter_by(referral_code=inviter_code).first()
-            if inviter and inviter.id != user.id:
-                bonus = amount_paid / 2  # 50% referral bonus
-                inviter.earnings += bonus
-                db.session.add(AffiliateTransaction(
-                    user_id=inviter.id,
-                    type="referral_bonus",
-                    amount=bonus,
-                    status="completed"
-                ))
-                db.session.commit()
-                print(f"✅ Referral bonus added to {inviter.full_name}")
+        if not user.referral_code:
+            count = User.query.filter_by(is_affiliate=True).count()
+            user.referral_code = f"UCSLAA{count + 1}"
 
         db.session.commit()
-        print(f"✅ Affiliate activated: {user.full_name}")
 
-    else:
-        print(f"ℹ️ User already affiliate: {user.full_name}")
-
-    return {"status": "success"}, 200
+    flash("Affiliate activated successfully!", "success")
+    return redirect(url_for("affiliate_dashboard"))
 
 @app.route("/affiliate_withdraw", methods=["POST"])
 @login_required
@@ -742,13 +699,18 @@ def mpesa_b2c_callback():
 import hmac, hashlib, json
 from flask import request
 
+import hmac
+import hashlib
+import json
+
 @app.route("/paystack/webhook", methods=["POST"])
 def paystack_webhook():
     payload = request.data
     signature = request.headers.get("x-paystack-signature")
 
-    secret = os.environ["PAYSTACK_SECRET_KEY"].encode()
+    secret = os.environ.get("PAYSTACK_SECRET_KEY").encode()
     computed = hmac.new(secret, payload, hashlib.sha512).hexdigest()
+
     if signature != computed:
         return "Invalid signature", 400
 
@@ -758,25 +720,33 @@ def paystack_webhook():
         return "Ignored", 200
 
     data = event["data"]
-    reference = data["reference"]
+    metadata = data.get("metadata", {})
+    user_id = metadata.get("user_id")
 
-    payment = AffiliatePayment.query.filter_by(reference=reference).first()
-    if not payment or payment.status == "completed":
-        return "OK", 200
+    if not user_id:
+        return "No user_id", 400
 
-    if data["status"] == "success":
-        payment.status = "completed"
-        user = payment.user
+    user = User.query.get(user_id)
+    if not user:
+        return "User not found", 404
+
+    # Activate affiliate
+    if not user.is_affiliate:
         user.is_affiliate = True
-        user.referral_code = f"AFF{user.id}"
-        # Optional: handle inviter bonus
-        if user.inviter:
-            user.inviter.earnings += 50  # referral bonus
+
+        if not user.referral_code:
+            count = User.query.filter_by(is_affiliate=True).count()
+            user.referral_code = f"UCSLAA{count + 1}"
+
+        db.session.add(AffiliateTransaction(
+            user_id=user.id,
+            type="join",
+            amount=data["amount"] / 100,
+            status="completed"
+        ))
         db.session.commit()
 
     return "OK", 200
-
-from sqlalchemy import text
 
 # ----------------- Run App -----------------
 if __name__ == "__main__":
