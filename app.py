@@ -778,18 +778,6 @@ def paystack_webhook():
 
 from sqlalchemy import text
 
-@app.route('/__reset_all_users__', methods=['POST'])
-def reset_all_users():
-    try:
-        db.session.execute(
-            text('TRUNCATE TABLE "user" RESTART IDENTITY CASCADE')
-        )
-        db.session.commit()
-        return "ALL USERS RESET", 200
-    except Exception as e:
-        db.session.rollback()
-        return f"ERROR: {e}", 500
-
 # ----------------- Run App -----------------
 if __name__ == "__main__":
        app.run(host="0.0.0.0", port=5000, debug=False)
