@@ -285,6 +285,12 @@ def withdraw():
     return redirect(url_for("dashboard"))
 
 # ----------- Admin Dashboard -----------
+@app.route("/admin/reset-users")
+def reset_users():
+    User.query.delete()
+    db.session.commit()
+    return "All users deleted"
+
 @app.route("/admin_dashboard")
 @admin_required
 def admin_dashboard():
