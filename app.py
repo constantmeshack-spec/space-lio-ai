@@ -491,7 +491,6 @@ def join_affiliate():
         return redirect(url_for("affiliate_dashboard"))
 
     return render_template("join_affiliate.html")
-
 @app.route("/process_affiliate_join", methods=["POST"])
 @login_required
 def process_affiliate_join():
@@ -507,17 +506,11 @@ def process_affiliate_join():
     phone = request.form.get("phone", "").strip()
     referral_code_input = request.form.get("referral_code", "").strip()
 
-    # Validate phone
-    if not phone.startswith("254") or len(phone) != 12 or not phone.isdigit():
-        flash("Phone number must start with 254 and be 12 digits long.", "error")
-        return redirect(url_for("join_affiliate"))
-
-    # Prepare inviter
     inviter = None
     if referral_code_input:
         inviter = User.query.filter_by(referral_code=referral_code_input).first()
-        if not inviter:
-            flash("Invalid referral code. You can still join without it.", "warning")
+        if inviter:
+            user.invited_by_id = inviter.id
 
     # Paystack Payment Initialization
     PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY")
@@ -527,8 +520,8 @@ def process_affiliate_join():
     }
 
     data = {
-        "email": f"{user.phone}@example.com",  # Paystack needs email, fake with phone
-        "amount": 10000,  # Amount in kobo (100 KES)
+        "email": f"{user.phone}@example.com",
+        "amount": 10000,  # in kobo
         "currency": "KES",
         "callback_url": url_for("affiliate_complete", _external=True),
         "metadata": {
@@ -546,9 +539,6 @@ def process_affiliate_join():
 
     # Save pending transaction reference
     user.pending_checkout_id = resp_json["data"]["reference"]
-    if inviter:
-        user.invited_by_id = inviter.id
-
     try:
         db.session.commit()
     except Exception as e:
@@ -556,6 +546,10 @@ def process_affiliate_join():
         print("DB commit failed:", e)
         flash("Temporary database error. Please try again.", "error")
         return redirect(url_for("join_affiliate"))
+
+    # ✅ FIX: redirect user to Paystack payment page
+    authorization_url = resp_json["data"]["authorization_url"]
+    return redirect(authorization_url)
 
 @app.route("/affiliate/complete", methods=["GET"])
 @login_required
