@@ -11,6 +11,10 @@ import os
 
 from flask_sqlalchemy import SQLAlchemy
 import mimetypes
+
+from dotenv import load_dotenv
+load_dotenv()
+
 # ----------------- App Setup -----------------
 app = Flask(__name__)
 
@@ -26,6 +30,13 @@ if DATABASE_URL:
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///local.db"
+# Recommended for remote Postgres (Render)
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,       # Checks if connection is alive before using
+    "pool_recycle": 280,         # Recycle connections older than 280s
+    "pool_size": 5,              # Number of connections in the pool
+    "max_overflow": 10            # Extra connections allowed
+}
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -537,10 +548,14 @@ def process_affiliate_join():
     user.pending_checkout_id = resp_json["data"]["reference"]
     if inviter:
         user.invited_by_id = inviter.id
-    db.session.commit()
 
-    # Redirect to Paystack checkout
-    return redirect(resp_json["data"]["authorization_url"])
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print("DB commit failed:", e)
+        flash("Temporary database error. Please try again.", "error")
+        return redirect(url_for("join_affiliate"))
 
 @app.route("/affiliate/complete", methods=["GET"])
 @login_required
@@ -578,9 +593,31 @@ def affiliate_complete():
     if not user.is_affiliate:
         user.is_affiliate = True
 
+        # Assign referral code if missing
         if not user.referral_code:
             count = User.query.filter_by(is_affiliate=True).count()
             user.referral_code = f"UCSLAA{count + 1}"
+
+        # Record join transaction
+        db.session.add(AffiliateTransaction(
+            user_id=user.id,
+            type="join",
+            amount=data["amount"] / 100,  # Convert kobo to KES
+            status="completed"
+        ))
+
+        # --------- Referral bonus logic ---------
+        REFERRAL_BONUS = 50  # KES
+        if user.invited_by_id:
+            inviter = User.query.get(user.invited_by_id)
+            if inviter:
+                inviter.earnings += REFERRAL_BONUS
+                db.session.add(AffiliateTransaction(
+                    user_id=inviter.id,
+                    type="referral_bonus",
+                    amount=REFERRAL_BONUS,
+                    status="completed"
+                ))
 
         db.session.commit()
 
@@ -734,17 +771,33 @@ def paystack_webhook():
     if not user.is_affiliate:
         user.is_affiliate = True
 
-        if not user.referral_code:
-            count = User.query.filter_by(is_affiliate=True).count()
-            user.referral_code = f"UCSLAA{count + 1}"
+    # Assign referral code if missing
+    if not user.referral_code:
+        count = User.query.filter_by(is_affiliate=True).count()
+        user.referral_code = f"UCSLAA{count + 1}"
 
-        db.session.add(AffiliateTransaction(
-            user_id=user.id,
-            type="join",
-            amount=data["amount"] / 100,
-            status="completed"
-        ))
-        db.session.commit()
+    # Record join transaction
+    db.session.add(AffiliateTransaction(
+        user_id=user.id,
+        type="join",
+        amount=data["amount"] / 100,  # KES
+        status="completed"
+    ))
+
+    # --------- Referral bonus logic ---------
+    REFERRAL_BONUS = 50  # KES
+    if user.invited_by_id:
+        inviter = User.query.get(user.invited_by_id)
+        if inviter:
+            inviter.earnings += REFERRAL_BONUS
+            db.session.add(AffiliateTransaction(
+                user_id=inviter.id,
+                type="referral_bonus",
+                amount=REFERRAL_BONUS,
+                status="completed"
+            ))
+
+    db.session.commit()
 
     return "OK", 200
 
