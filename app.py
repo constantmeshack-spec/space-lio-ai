@@ -467,14 +467,29 @@ def admin_process_withdraw(transaction_id):
     transaction = AffiliateTransaction.query.get_or_404(transaction_id)
     user = transaction.user
 
+    if transaction.status != "pending":
+        flash("This withdrawal has already been processed.", "info")
+        return redirect(url_for("admin_affiliate_withdrawals"))
+
     if action == "paid":
-        transaction.status = "completed"
-        # Deduct from user earnings if not already deducted
+        # Ensure user has enough earnings before deducting
+        if user.earnings < transaction.amount:
+            flash(f"Cannot approve: user has insufficient earnings. Current earnings: KES {user.earnings}", "error")
+            return redirect(url_for("admin_affiliate_withdrawals"))
+
+        # Deduct the requested amount
         user.earnings -= transaction.amount
+        transaction.status = "completed"
+
     elif action == "rejected":
         transaction.status = "failed"
-        # Restore user earnings
-        user.earnings += transaction.amount
+        # If you deducted on request, restore the amount:
+        # user.earnings += transaction.amount
+        # If you deduct only on approval, nothing to restore.
+
+    else:
+        flash("Invalid action.", "error")
+        return redirect(url_for("admin_affiliate_withdrawals"))
 
     db.session.commit()
     flash(f"Withdrawal marked as {transaction.status} for {user.full_name}", "success")
@@ -719,14 +734,25 @@ def affiliate_complete():
 
     flash("Affiliate activated successfully!", "success")
     return redirect(url_for("affiliate_dashboard"))
+
 @app.route("/affiliate_withdraw", methods=["POST"])
 @login_required
 def affiliate_withdraw():
     user = User.query.get(session["user_id"])
     MIN_WITHDRAW = 100  # minimum withdrawal
 
-    if user.earnings < MIN_WITHDRAW:
-        flash(f"Minimum withdrawal is KES {MIN_WITHDRAW}. Your earnings: KES {user.earnings}", "error")
+    try:
+        amount = float(request.form.get("withdraw_amount", 0))
+    except:
+        flash("Invalid withdrawal amount.", "error")
+        return redirect(url_for("affiliate_dashboard"))
+
+    if amount < MIN_WITHDRAW:
+        flash(f"Minimum withdrawal is KES {MIN_WITHDRAW}.", "error")
+        return redirect(url_for("affiliate_dashboard"))
+
+    if amount > user.earnings:
+        flash("You cannot withdraw more than your current earnings.", "error")
         return redirect(url_for("affiliate_dashboard"))
 
     method = request.form.get("method")  # 'mpesa' or 'bank'
@@ -740,7 +766,7 @@ def affiliate_withdraw():
         transaction = AffiliateTransaction(
             user_id=user.id,
             type="withdraw",
-            amount=user.earnings,
+            amount=amount,
             status="pending",
             withdraw_method="mpesa",
             mpesa_phone=phone
@@ -748,8 +774,8 @@ def affiliate_withdraw():
 
     elif method == "bank":
         bank_name = request.form.get("bank_name")
-        paybill = request.form.get("paybill")
-        account_no = request.form.get("account_no")
+        paybill = request.form.get("bank_paybill")
+        account_no = request.form.get("bank_account")
         if not bank_name or not paybill or not account_no:
             flash("Please provide all bank details.", "error")
             return redirect(url_for("affiliate_dashboard"))
@@ -757,7 +783,7 @@ def affiliate_withdraw():
         transaction = AffiliateTransaction(
             user_id=user.id,
             type="withdraw",
-            amount=user.earnings,
+            amount=amount,
             status="pending",
             withdraw_method="bank",
             bank_name=bank_name,
@@ -769,11 +795,14 @@ def affiliate_withdraw():
         flash("Invalid withdrawal method.", "error")
         return redirect(url_for("affiliate_dashboard"))
 
-    user.earnings -= transaction.amount
+    # Only deduct when admin approves if you follow previous fix
+    # If you want to deduct now, uncomment the next line:
+    # user.earnings -= amount
+
     db.session.add(transaction)
     db.session.commit()
 
-    flash(f"Withdrawal request submitted for KES {transaction.amount}. Waiting for admin approval.", "success")
+    flash(f"Withdrawal request submitted for KES {amount}. Waiting for admin approval.", "success")
     return redirect(url_for("affiliate_dashboard"))
 
 @app.route("/affiliate/withdrawals")

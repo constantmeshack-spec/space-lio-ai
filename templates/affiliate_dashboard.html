@@ -87,6 +87,10 @@
 <!-- Withdraw Section -->
 <h3 style="color: green;">Withdraw Earnings</h3>
 <form method="POST" action="{{ url_for('affiliate_withdraw') }}" style="margin-top:10px;">
+    <!-- Add this inside your form, before the method select -->
+    <label for="withdraw_amount">Amount to Withdraw (KES):</label>
+    <input type="number" name="withdraw_amount" id="withdraw_amount" min="100" max="{{ earnings }}" placeholder="Enter amount" required>
+
     <label for="method">Withdrawal Method:</label>
     <select name="method" id="method" required onchange="showFields(this.value)">
         <option value="">Select method</option>
