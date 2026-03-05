@@ -120,7 +120,6 @@ class TaskSubmission(db.Model):
     approved = db.Column(db.Boolean, default=False)
 
     user = db.relationship("User", backref="task_submissions")
-
 class AffiliateTransaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -129,7 +128,15 @@ class AffiliateTransaction(db.Model):
     timestamp = db.Column(db.DateTime, default=db.func.now())
     status = db.Column(db.String(20), default="pending")  # pending, completed, failed
 
+    # New fields for withdrawals
+    withdraw_method = db.Column(db.String(20), nullable=True)  # "mpesa" or "bank"
+    mpesa_phone = db.Column(db.String(20), nullable=True)
+    bank_name = db.Column(db.String(50), nullable=True)
+    paybill = db.Column(db.String(50), nullable=True)
+    account_no = db.Column(db.String(50), nullable=True)
+
     user = db.relationship("User", backref="affiliate_transactions")
+
 class AffiliatePayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -444,6 +451,101 @@ def reset_affiliate(user_id):
     flash(f"Affiliate status reset for {user.full_name}", "success")
     return redirect(url_for('admin_dashboard'))
 
+@app.route("/admin/affiliate_withdrawals")
+@admin_required
+def admin_affiliate_withdrawals():
+    transactions = AffiliateTransaction.query.order_by(
+        AffiliateTransaction.timestamp.desc()
+    ).all()
+    return render_template("admin_affiliate_withdrawals.html",
+                           affiliate_transactions=transactions)
+
+@app.route("/admin/process_withdraw/<int:transaction_id>", methods=["POST"])
+@admin_required
+def admin_process_withdraw(transaction_id):
+    action = request.form.get("action")
+    transaction = AffiliateTransaction.query.get_or_404(transaction_id)
+    user = transaction.user
+
+    if action == "paid":
+        transaction.status = "completed"
+        # Deduct from user earnings if not already deducted
+        user.earnings -= transaction.amount
+    elif action == "rejected":
+        transaction.status = "failed"
+        # Restore user earnings
+        user.earnings += transaction.amount
+
+    db.session.commit()
+    flash(f"Withdrawal marked as {transaction.status} for {user.full_name}", "success")
+    return redirect(url_for("admin_affiliate_withdrawals"))
+
+# Display affiliate management page
+@app.route("/admin/affiliate_management")
+@admin_required
+def admin_affiliate_management():
+    affiliate_users = User.query.filter_by(is_affiliate=True).all()
+    return render_template("admin_affiliate_management.html", affiliate_users=affiliate_users)
+
+# Reward route
+@app.route("/admin/reward_affiliate", methods=["POST"])
+@admin_required
+def admin_reward_affiliate():
+    user_id = request.form.get("user_id")
+    amount = request.form.get("amount")
+
+    if not user_id or not amount:
+        flash("User or amount missing.", "error")
+        return redirect(url_for("admin_affiliate_management"))
+
+    try:
+        amount = float(amount)
+        if amount <= 0:
+            flash("Amount must be greater than 0.", "error")
+            return redirect(url_for("admin_affiliate_management"))
+    except:
+        flash("Invalid amount.", "error")
+        return redirect(url_for("admin_affiliate_management"))
+
+    user = User.query.get(user_id)
+    if not user or not user.is_affiliate:
+        flash("User not found or not an affiliate.", "error")
+        return redirect(url_for("admin_affiliate_management"))
+
+    user.earnings += amount
+
+    db.session.add(AffiliateTransaction(
+        user_id=user.id,
+        type="reward",
+        amount=amount,
+        status="completed",
+        withdraw_method="admin"
+    ))
+
+    db.session.commit()
+    flash(f"Rewarded KES {amount} to {user.full_name}.", "success")
+    return redirect(url_for("admin_affiliate_management"))
+
+# Ban/Deregister route
+@app.route("/admin/ban_affiliate", methods=["POST"])
+@admin_required
+def admin_ban_affiliate():
+    user_id = request.form.get("user_id")
+    user = User.query.get(user_id)
+    if not user or not user.is_affiliate:
+        flash("User not found or not an affiliate.", "error")
+        return redirect(url_for("admin_affiliate_management"))
+
+    # Deregister user as affiliate
+    user.is_affiliate = False
+    user.earnings = 0
+    user.referral_code = None
+    user.invited_by_id = None
+
+    db.session.commit()
+    flash(f"{user.full_name} has been banned as affiliate.", "success")
+    return redirect(url_for("admin_affiliate_management"))
+
 # ----------------- Affiliate Route -----------------
 @app.route("/affiliate")
 @login_required
@@ -617,115 +719,73 @@ def affiliate_complete():
 
     flash("Affiliate activated successfully!", "success")
     return redirect(url_for("affiliate_dashboard"))
-
 @app.route("/affiliate_withdraw", methods=["POST"])
 @login_required
 def affiliate_withdraw():
     user = User.query.get(session["user_id"])
-    MIN_WITHDRAW = 50  # Minimum in KES
+    MIN_WITHDRAW = 100  # minimum withdrawal
 
     if user.earnings < MIN_WITHDRAW:
         flash(f"Minimum withdrawal is KES {MIN_WITHDRAW}. Your earnings: KES {user.earnings}", "error")
         return redirect(url_for("affiliate_dashboard"))
 
-    amount = int(user.earnings)  # B2C needs integer KES
-    phone = user.phone  # Recipient phone
+    method = request.form.get("method")  # 'mpesa' or 'bank'
 
-    # ------------------ M-Pesa B2C ------------------
-    token = get_mpesa_token()
-    if not token:
-        flash("Failed to authenticate M-Pesa. Try again.", "error")
-        return redirect(url_for("affiliate_dashboard"))
+    if method == "mpesa":
+        phone = request.form.get("mpesa_phone")
+        if not phone:
+            flash("Please provide MPESA phone number.", "error")
+            return redirect(url_for("affiliate_dashboard"))
 
-    SHORTCODE = os.environ.get("MPESA_SHORTCODE")
-    PASSKEY = os.environ.get("MPESA_PASSKEY")
-    CALLBACK_URL = os.environ.get("MPESA_CALLBACK_URL")  # Can be separate for B2C
-
-    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    password = base64.b64encode(f"{SHORTCODE}{PASSKEY}{timestamp}".encode()).decode()
-
-    b2c_request = {
-        "InitiatorName": os.environ.get("MPESA_INITIATOR"),  # MPESA B2C Initiator username
-        "SecurityCredential": os.environ.get("MPESA_SECURITY_CRED"),  # encrypted password
-        "CommandID": "BusinessPayment",
-        "Amount": amount,
-        "PartyA": SHORTCODE,
-        "PartyB": phone,
-        "Remarks": f"Affiliate withdrawal for {user.full_name}",
-        "QueueTimeOutURL": CALLBACK_URL,
-        "ResultURL": CALLBACK_URL,
-        "Occasion": "AffiliateWithdrawal"
-    }
-
-    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    response = requests.post(
-        "https://api.safaricom.co.ke/mpesa/b2c/v1/paymentrequest",
-        json=b2c_request,
-        headers=headers
-    )
-
-    resp_json = response.json()
-    if resp_json.get("ResponseCode") != "0":
-        flash(f"Withdrawal failed: {resp_json.get('errorMessage', 'Unknown error')}", "error")
-        return redirect(url_for("affiliate_dashboard"))
-
-    # ------------------ Update DB ------------------
-    user.earnings = 0
-    db.session.add(AffiliateTransaction(
-        user_id=user.id,
-        type="withdraw",
-        amount=amount,
-        status="pending"  # will update after B2C callback
-    ))
-    db.session.commit()
-
-    flash(f"Withdrawal of KES {amount} initiated! Check your phone.", "success")
-    return redirect(url_for("affiliate_dashboard"))
-
-@app.route("/mpesa/b2c/callback", methods=["POST"])
-def mpesa_b2c_callback():
-    data = request.get_json()
-    print("B2C Callback received:", data)  # For debugging
-
-    try:
-        # Extract transaction details
-        result_code = data.get("Result", {}).get("ResultCode")
-        amount = float(data.get("Result", {}).get("TransactionAmount", 0))
-        phone = data.get("Result", {}).get("ReceiverPartyPublicName", "").split(" ")[0]  # Safaricom sends full name
-        trans_id = data.get("Result", {}).get("TransactionReceipt")
-        remarks = data.get("Result", {}).get("ResultDesc")
-
-        # Find the user
-        user = User.query.filter_by(phone=phone).first()
-        if not user:
-            print("User not found for B2C callback:", phone)
-            return {"ResultCode": 0, "ResultDesc": "Accepted"}
-
-        # Find pending transaction
-        transaction = AffiliateTransaction.query.filter_by(
+        transaction = AffiliateTransaction(
             user_id=user.id,
             type="withdraw",
-            status="pending"
-        ).order_by(AffiliateTransaction.timestamp.desc()).first()
+            amount=user.earnings,
+            status="pending",
+            withdraw_method="mpesa",
+            mpesa_phone=phone
+        )
 
-        if not transaction:
-            print("No pending withdrawal for user:", user.phone)
-            return {"ResultCode": 0, "ResultDesc": "Accepted"}
+    elif method == "bank":
+        bank_name = request.form.get("bank_name")
+        paybill = request.form.get("paybill")
+        account_no = request.form.get("account_no")
+        if not bank_name or not paybill or not account_no:
+            flash("Please provide all bank details.", "error")
+            return redirect(url_for("affiliate_dashboard"))
 
-        # Update status based on ResultCode
-        if result_code == 0:
-            transaction.status = "completed"
-        else:
-            transaction.status = "failed"
-            # If failed, restore earnings
-            user.earnings += amount
+        transaction = AffiliateTransaction(
+            user_id=user.id,
+            type="withdraw",
+            amount=user.earnings,
+            status="pending",
+            withdraw_method="bank",
+            bank_name=bank_name,
+            paybill=paybill,
+            account_no=account_no
+        )
 
-        db.session.commit()
+    else:
+        flash("Invalid withdrawal method.", "error")
+        return redirect(url_for("affiliate_dashboard"))
 
-    except Exception as e:
-        print("Error processing B2C callback:", e)
+    user.earnings -= transaction.amount
+    db.session.add(transaction)
+    db.session.commit()
 
-    return {"ResultCode": 0, "ResultDesc": "Accepted"}
+    flash(f"Withdrawal request submitted for KES {transaction.amount}. Waiting for admin approval.", "success")
+    return redirect(url_for("affiliate_dashboard"))
+
+@app.route("/affiliate/withdrawals")
+@login_required
+def affiliate_withdrawals():
+    user = User.query.get(session["user_id"])
+    withdrawals = AffiliateTransaction.query.filter_by(
+        user_id=user.id,
+        type="withdraw"
+    ).order_by(AffiliateTransaction.timestamp.desc()).all()
+
+    return render_template("affiliate_withdrawals.html", withdrawals=withdrawals)
 
 import hmac, hashlib, json
 from flask import request
@@ -797,4 +857,4 @@ def paystack_webhook():
 
 # ----------------- Run App -----------------
 if __name__ == "__main__":
-       app.run(host="0.0.0.0", port=5000, debug=False)
+       app.run(host="0.0.0.0", port=5000, debug=True)

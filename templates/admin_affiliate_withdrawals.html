@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Affiliate Withdrawals - {{ APP_NAME }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;  /* full black background */
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 { color: green; }
+        h3, p.subheader { color: skyblue; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #2c2c2c;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #444;
+            text-align: left;
+        }
+
+        th { background-color: #333; color: green; }
+        button {
+            background-color: darkgreen;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover { background-color: #006400; }
+
+        a { text-decoration: none; color: white; }
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Affiliate Withdrawals</h2>
+        {% if affiliate_transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Amount (KES)</th>
+                    <th>Method</th>
+                    <th>Details</th>
+                    <th>Status</th>
+                    <th>Requested At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in affiliate_transactions %}
+                {% if t.type == "withdraw" %}
+                <tr>
+                    <td>{{ t.user.full_name }}</td>
+                    <td>{{ t.amount }}</td>
+                    <td>{{ t.withdraw_method }}</td>
+                    <td>
+                        {% if t.withdraw_method == "mpesa" %}
+                            Phone: {{ t.mpesa_phone }}
+                        {% elif t.withdraw_method == "bank" %}
+                            Bank: {{ t.bank_name }}<br>
+                            Paybill: {{ t.paybill }}<br>
+                            Account: {{ t.account_no }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>{{ t.status }}</td>
+                    <td>{{ t.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        {% if t.status == "pending" %}
+                        <form method="POST" action="{{ url_for('admin_process_withdraw', transaction_id=t.id) }}" style="display:inline;">
+                            <button type="submit" name="action" value="paid">Mark Paid</button>
+                            <button type="submit" name="action" value="rejected">Reject</button>
+                        </form>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No affiliate withdrawals yet.</p>
+        {% endif %}
+
+        <br>
+        <a href="{{ url_for('admin_dashboard') }}">Back to Admin Dashboard</a>
+    </div>
+</body>
+</html>

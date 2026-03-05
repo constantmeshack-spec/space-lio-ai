@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Affiliate Management - {{ APP_NAME }}</title>
+<style>
+    body { font-family: Arial, sans-serif; background-color: black; color: white; margin:0; padding:0; }
+    h2 { color: green; text-align:center; margin-top:20px; }
+    table { width: 95%; margin: 20px auto; border-collapse: collapse; background-color: #2c2c2c; }
+    th, td { padding: 10px; border: 1px solid #444; text-align: left; }
+    th { background-color: #333; color: green; }
+    input[type=number] { width: 80px; padding: 4px; margin-right: 4px; }
+    button { background-color: darkgreen; color: white; border: none; padding: 4px 8px; cursor: pointer; }
+    button:hover { background-color: #006400; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+    a { color: white; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h2>Affiliate Users Management</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Earnings</th>
+                <th>Withdraw Method</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in affiliate_users %}
+            <tr>
+                <td>{{ u.full_name }}</td>
+                <td>{{ u.phone }}</td>
+                <td>{{ u.earnings }}</td>
+                <td>{% if u.withdraw_method %}{{ u.withdraw_method }}{% else %}-{% endif %}</td>
+                <td>
+                    <!-- Reward Form -->
+                    <form method="POST" action="{{ url_for('admin_reward_affiliate') }}" style="display:inline-block;">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <input type="number" name="amount" placeholder="Amount" min="1" required>
+                        <button type="submit">Reward</button>
+                    </form>
+
+                    <!-- Ban/Deregister Form -->
+                    <form method="POST" action="{{ url_for('admin_ban_affiliate') }}" style="display:inline-block;">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <button type="submit" style="background-color:red;">Ban</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;">No affiliate users found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+</div>
+</body>
+</html>
