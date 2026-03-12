@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ APP_NAME }} - Withdraw</title>
+    <style>
+        body { background-color: #121212; color: white; font-family: Arial, sans-serif; }
+        .card { border: 1px solid green; padding: 15px; margin: 15px 0; }
+        .btn { background-color: darkgreen; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background-color: #006400; }
+        input, select { padding: 6px; margin: 5px 0; width: 100%; }
+    </style>
+    <script>
+        function toggleFields() {
+            var method = document.getElementById("method").value;
+            document.getElementById("mpesa_fields").style.display = (method=="mpesa") ? "block" : "none";
+            document.getElementById("bank_fields").style.display = (method=="bank") ? "block" : "none";
+        }
+    </script>
+</head>
+<body>
+    <h1>Withdraw Balance</h1>
+    <div class="card">
+        <form action="{{ url_for('user_withdraw') }}" method="POST">
+            <p><strong>Current Balance: KES {{ user.balance }}</strong></p>
+            <label for="withdraw_amount">Amount to Withdraw:</label>
+            <input type="number" name="withdraw_amount" id="withdraw_amount" max="{{ user.balance }}" min="500" required>
+
+            <label for="method">Select Method:</label>
+            <select name="method" id="method" onchange="toggleFields()" required>
+                <option value="">--Select--</option>
+                <option value="mpesa">MPESA</option>
+                <option value="bank">Bank</option>
+            </select>
+
+            <div id="mpesa_fields" style="display:none;">
+                <label for="mpesa_phone">MPESA Phone:</label>
+                <input type="text" name="mpesa_phone" id="mpesa_phone">
+            </div>
+
+            <div id="bank_fields" style="display:none;">
+                <label for="bank_name">Bank Name:</label>
+                <input type="text" name="bank_name" id="bank_name">
+                <label for="bank_paybill">Paybill:</label>
+                <input type="text" name="bank_paybill" id="bank_paybill">
+                <label for="bank_account">Account Number:</label>
+                <input type="text" name="bank_account" id="bank_account">
+            </div>
+
+            <button type="submit" class="btn">Submit Withdraw</button>
+        </form>
+        <br>
+        <a class="btn" href="{{ url_for('view_withdraw_status') }}">View Withdraw Status</a>
+    </div>
+</body>
+</html>

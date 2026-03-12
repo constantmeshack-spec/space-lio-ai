@@ -295,12 +295,90 @@ def submit_task(task_id):
     flash("Task submitted successfully!", "success")
     return redirect(url_for("tasks"))
 
-# ----------- Withdraw placeholder -----------
-@app.route("/withdraw")
+# Withdraw Dashboard
+@app.route("/withdraw_dashboard")
 @login_required
-def withdraw():
-    flash("Withdraw functionality will be available soon.", "info")
-    return redirect(url_for("dashboard"))
+def withdraw_dashboard():
+    user = User.query.get(session["user_id"])
+    return render_template("withdraw_dashboard.html", user=user)
+
+
+# Handle Withdraw Submit
+@app.route("/user_withdraw", methods=["POST"])
+@login_required
+def user_withdraw():
+    user = User.query.get(session["user_id"])
+    MIN_WITHDRAW = 500
+
+    try:
+        amount = float(request.form.get("withdraw_amount", 0))
+    except:
+        flash("Invalid withdrawal amount.", "error")
+        return redirect(url_for("withdraw_dashboard"))
+
+    if amount < MIN_WITHDRAW:
+        flash(f"Minimum withdrawal is KES {MIN_WITHDRAW}.", "error")
+        return redirect(url_for("withdraw_dashboard"))
+
+    if amount > user.balance:
+        flash("You cannot withdraw more than your current balance.", "error")
+        return redirect(url_for("withdraw_dashboard"))
+
+    method = request.form.get("method")
+    if method == "mpesa":
+        phone = request.form.get("mpesa_phone")
+        if not phone:
+            flash("Please provide MPESA phone number.", "error")
+            return redirect(url_for("withdraw_dashboard"))
+
+        transaction = AffiliateTransaction(
+            user_id=user.id,
+            type="balance_withdraw",
+            amount=amount,
+            status="pending",
+            withdraw_method="mpesa",
+            mpesa_phone=phone
+        )
+
+    elif method == "bank":
+        bank_name = request.form.get("bank_name")
+        paybill = request.form.get("bank_paybill")
+        account_no = request.form.get("bank_account")
+        if not bank_name or not paybill or not account_no:
+            flash("Please provide all bank details.", "error")
+            return redirect(url_for("withdraw_dashboard"))
+
+        transaction = AffiliateTransaction(
+            user_id=user.id,
+            type="balance_withdraw",
+            amount=amount,
+            status="pending",
+            withdraw_method="bank",
+            bank_name=bank_name,
+            paybill=paybill,
+            account_no=account_no
+        )
+    else:
+        flash("Invalid withdrawal method.", "error")
+        return redirect(url_for("withdraw_dashboard"))
+
+    db.session.add(transaction)
+    db.session.commit()
+
+    flash(f"Withdrawal request for KES {amount} submitted successfully!", "success")
+    # ✅ redirect to status page
+    return redirect(url_for("view_withdraw_status"))
+
+
+# View Withdraw Status
+@app.route("/view_withdraw_status")
+@login_required
+def view_withdraw_status():
+    user = User.query.get(session["user_id"])
+    withdrawals = AffiliateTransaction.query.filter_by(
+        user_id=user.id, type="balance_withdraw"
+    ).order_by(AffiliateTransaction.timestamp.desc()).all()
+    return render_template("view_withdraw_status.html", withdrawals=withdrawals)
 
 # ----------- Admin Dashboard -----------
 @app.route("/admin_dashboard")
@@ -454,9 +532,9 @@ def reset_affiliate(user_id):
 @app.route("/admin/affiliate_withdrawals")
 @admin_required
 def admin_affiliate_withdrawals():
-    transactions = AffiliateTransaction.query.order_by(
-        AffiliateTransaction.timestamp.desc()
-    ).all()
+    transactions = AffiliateTransaction.query.filter_by(
+        type="affiliate_withdraw"  # <- changed here
+    ).order_by(AffiliateTransaction.timestamp.desc()).all()
     return render_template("admin_affiliate_withdrawals.html",
                            affiliate_transactions=transactions)
 
@@ -494,6 +572,46 @@ def admin_process_withdraw(transaction_id):
     db.session.commit()
     flash(f"Withdrawal marked as {transaction.status} for {user.full_name}", "success")
     return redirect(url_for("admin_affiliate_withdrawals"))
+
+@app.route("/admin/balance_withdrawals")
+@admin_required
+def admin_balance_withdrawals():
+    withdrawals = AffiliateTransaction.query.filter_by(
+        type="balance_withdraw"
+    ).order_by(AffiliateTransaction.timestamp.desc()).all()
+    return render_template("admin_balance_withdrawals.html", withdrawals=withdrawals)
+
+@app.route("/admin/process_balance_withdraw/<int:transaction_id>", methods=["POST"])
+@admin_required
+def admin_process_balance_withdraw(transaction_id):
+    action = request.form.get("action")
+    transaction = AffiliateTransaction.query.get_or_404(transaction_id)
+    user = transaction.user
+
+    if transaction.status != "pending":
+        flash("This withdrawal has already been processed.", "info")
+        return redirect(url_for("admin_balance_withdrawals"))
+
+    if action == "paid":
+        if user.balance < transaction.amount:
+            flash(f"Cannot complete: user has insufficient balance.", "error")
+            return redirect(url_for("admin_balance_withdrawals"))
+
+        # Deduct user balance and mark completed
+        user.balance -= transaction.amount
+        transaction.status = "completed"
+
+    elif action == "rejected":
+        transaction.status = "failed"
+        # Balance not deducted
+
+    else:
+        flash("Invalid action.", "error")
+        return redirect(url_for("admin_balance_withdrawals"))
+
+    db.session.commit()
+    flash(f"Withdrawal marked as {transaction.status} for {user.full_name}.", "success")
+    return redirect(url_for("admin_balance_withdrawals"))
 
 # Display affiliate management page
 @app.route("/admin/affiliate_management")
@@ -765,7 +883,7 @@ def affiliate_withdraw():
 
         transaction = AffiliateTransaction(
             user_id=user.id,
-            type="withdraw",
+            type="affiliate_withdraw",
             amount=amount,
             status="pending",
             withdraw_method="mpesa",
@@ -782,7 +900,7 @@ def affiliate_withdraw():
 
         transaction = AffiliateTransaction(
             user_id=user.id,
-            type="withdraw",
+            type="affiliate_withdraw",
             amount=amount,
             status="pending",
             withdraw_method="bank",
@@ -803,7 +921,7 @@ def affiliate_withdraw():
     db.session.commit()
 
     flash(f"Withdrawal request submitted for KES {amount}. Waiting for admin approval.", "success")
-    return redirect(url_for("affiliate_dashboard"))
+    return redirect(url_for("affiliate_withdrawals"))
 
 @app.route("/affiliate/withdrawals")
 @login_required
@@ -811,7 +929,7 @@ def affiliate_withdrawals():
     user = User.query.get(session["user_id"])
     withdrawals = AffiliateTransaction.query.filter_by(
         user_id=user.id,
-        type="withdraw"
+        type="affiliate_withdraw"
     ).order_by(AffiliateTransaction.timestamp.desc()).all()
 
     return render_template("affiliate_withdrawals.html", withdrawals=withdrawals)

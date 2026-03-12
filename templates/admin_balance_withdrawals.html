@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Balance Withdrawals - {{ APP_NAME }}</title>
+    <style>
+        body { background:#121212; color:white; font-family:Arial, sans-serif; }
+        table { width:100%; border-collapse:collapse; margin-top:20px; }
+        th, td { border:1px solid green; padding:10px; text-align:left; }
+        th { background:green; color:white; }
+        tr:nth-child(even) { background:#1a1a1a; }
+        a.btn { background:darkgreen; color:white; padding:6px 12px; text-decoration:none; border-radius:4px; }
+        a.btn:hover { background:#006400; }
+        .status-pending { color:orange; font-weight:bold; }
+        .status-completed { color:lightgreen; font-weight:bold; }
+        .status-failed { color:red; font-weight:bold; }
+    </style>
+</head>
+<body>
+
+<h1>Manage Balance Withdrawals</h1>
+
+<table>
+    <tr>
+        <th>User</th>
+        <th>Amount (KES)</th>
+        <th>Method</th>
+        <th>Details</th>
+        <th>Status</th>
+        <th>Action</th>
+        <th>Date</th>
+    </tr>
+
+    {% for w in withdrawals %}
+    <tr>
+        <td>{{ w.user.full_name }}</td>
+        <td>{{ w.amount }}</td>
+        <td>{{ w.withdraw_method|capitalize }}</td>
+        <td>
+            {% if w.withdraw_method == 'mpesa' %}
+                Phone: {{ w.mpesa_phone }}
+            {% elif w.withdraw_method == 'bank' %}
+                Bank: {{ w.bank_name }}<br>
+                Account: {{ w.account_no }}<br>
+                Paybill: {{ w.paybill or 'N/A' }}
+            {% endif %}
+        </td>
+        <td class="status-{{ w.status }}">{{ w.status|capitalize }}</td>
+        <td>
+            {% if w.status == 'pending' %}
+                <form method="POST" action="{{ url_for('admin_process_balance_withdraw', transaction_id=w.id) }}">
+                    <button type="submit" name="action" value="paid" class="btn">Complete</button>
+                    <button type="submit" name="action" value="rejected" class="btn">Reject</button>
+                </form>
+            {% else %}
+                -
+            {% endif %}
+        </td>
+        <td>{{ w.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+<a class="btn" href="{{ url_for('admin_dashboard') }}">Back to Admin Dashboard</a>
+
+</body>
+</html>

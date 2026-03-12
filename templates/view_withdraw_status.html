@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Withdraw Status - {{ APP_NAME }}</title>
+<style>
+    body { background-color: #121212; color: white; font-family: Arial, sans-serif; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid white; padding: 10px; text-align: left; }
+    th { background-color: darkgreen; }
+</style>
+</head>
+<body>
+<h1>Withdrawal Status</h1>
+<table>
+    <tr>
+        <th>Amount</th>
+        <th>Method</th>
+        <th>Details</th>
+        <th>Status</th>
+        <th>Timestamp</th>
+    </tr>
+    {% for w in withdrawals %}
+    <tr>
+        <td>KES {{ w.amount }}</td>
+        <td>{{ w.withdraw_method|capitalize }}</td>
+        <td>
+            {% if w.withdraw_method=='mpesa' %}
+                Phone: {{ w.mpesa_phone }}
+            {% elif w.withdraw_method=='bank' %}
+                Bank: {{ w.bank_name }} <br>
+                Paybill: {{ w.paybill }} <br>
+                Acc#: {{ w.account_no }}
+            {% endif %}
+        </td>
+        <td>{{ w.status|capitalize }}</td>
+        <td>{{ w.timestamp }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+</body>
+</html>
