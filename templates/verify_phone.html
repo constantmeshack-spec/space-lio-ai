@@ -8,7 +8,12 @@
     <!-- Main Header -->
     <h1 style="color:#90ee90; text-align:center; margin-bottom:20px;">Account Verification</h1>
     <hr style="border-color:#90ee90; margin-bottom:20px;">
-
+<!-- Logo at the top center -->
+<img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" 
+     alt="{{ APP_NAME }} Logo" 
+     class="logo" 
+     style="display:block; margin:20px auto; width:120px; border-radius:50%;">
+</br>
     <!-- Flash messages -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}

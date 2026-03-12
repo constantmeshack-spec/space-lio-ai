@@ -60,7 +60,12 @@ img {
 <body>
 
 <h1>Admin Dashboard</h1>
-
+<!-- Logo at the top center -->
+<img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" 
+     alt="{{ APP_NAME }} Logo" 
+     class="logo" 
+     style="display:block; margin:20px auto; width:120px; border-radius:50%;">
+</br>
 <div class="actions">
     <a href="{{ url_for('add_task') }}">+ Add Task</a>
     <a href="{{ url_for('admin_dashboard') }}">Refresh Dashboard</a>

@@ -117,6 +117,12 @@ function toggleFields() {
 <body>
 
 <!-- Home Button Always on Top -->
+<!-- Logo at the top center -->
+<img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" 
+     alt="{{ APP_NAME }} Logo" 
+     class="logo" 
+     style="display:block; margin:20px auto; width:120px; border-radius:50%;">
+</br>
 <a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
 
 <h1>Withdraw Balance</h1>
