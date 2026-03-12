@@ -177,7 +177,17 @@ import requests, base64, datetime, os
 # ----------------- Routes -----------------
 @app.route("/")
 def index():
-    return redirect(url_for("login"))
+    user_id = session.get("user_id")
+
+    if user_id:
+        user = User.query.get(user_id)
+        if user.is_admin:
+            return redirect(url_for("admin_dashboard"))
+        if user.verified:
+            return redirect(url_for("dashboard"))
+        return redirect(url_for("verify_account"))
+
+    return render_template("index.html")
 
 # ----------- Register -----------
 @app.route("/register", methods=["GET","POST"])

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{{ APP_NAME }} | Earn Online</title>
+
+<meta name="description" content="Earn money online with tasks and affiliate marketing on SPACE LIO AI.">
+<meta name="keywords" content="earn online, affiliate marketing, tasks platform, online income">
+<meta name="author" content="SPACE LIO AI">
+
+<link rel="icon" href="{{ url_for('static', filename='space_lio_logo.jpeg') }}">
+
+<style>
+
+/* MAIN */
+
+body{
+background:#0b0018;
+color:white;
+font-family:Arial, sans-serif;
+margin:0;
+}
+
+/* NAVBAR */
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 40px;
+background:#12002b;
+border-bottom:1px solid #2de2e6;
+}
+
+.logo{
+font-size:22px;
+font-weight:bold;
+color:#7cf7ff;
+}
+
+nav a{
+text-decoration:none;
+color:white;
+margin-left:15px;
+padding:8px 16px;
+border-radius:6px;
+background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+}
+
+nav a:hover{
+opacity:0.8;
+}
+
+/* HERO */
+
+.hero{
+text-align:center;
+padding:80px 20px;
+}
+
+.hero img{
+width:260px;
+margin-bottom:20px;
+}
+
+.hero h1{
+font-size:42px;
+color:#7cf7ff;
+margin-bottom:10px;
+}
+
+.hero p{
+max-width:600px;
+margin:auto;
+margin-bottom:30px;
+line-height:1.6;
+color:#d4d4ff;
+}
+
+.hero button{
+padding:14px 28px;
+font-size:16px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+color:white;
+background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+}
+
+.hero button:hover{
+opacity:0.85;
+}
+
+/* FEATURES */
+
+.features{
+padding:70px 40px;
+}
+
+.features h2{
+text-align:center;
+color:#7cf7ff;
+margin-bottom:40px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+}
+
+.box{
+background:#140030;
+padding:25px;
+border-radius:10px;
+border:1px solid #2de2e6;
+text-align:center;
+}
+
+.box h3{
+color:#7cf7ff;
+margin-bottom:10px;
+}
+
+/* HOW IT WORKS */
+
+.how{
+padding:70px 40px;
+background:#12002b;
+border-top:1px solid #2de2e6;
+border-bottom:1px solid #2de2e6;
+}
+
+.how h2{
+text-align:center;
+color:#7cf7ff;
+margin-bottom:30px;
+}
+
+.steps{
+max-width:700px;
+margin:auto;
+line-height:1.8;
+color:#d4d4ff;
+}
+
+/* FOOTER */
+
+footer{
+text-align:center;
+padding:20px;
+background:#12002b;
+margin-top:40px;
+border-top:1px solid #2de2e6;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">{{ APP_NAME }}</div>
+
+<nav>
+
+{% if session.get("user_id") %} <a href="{{ url_for('dashboard') }}">Dashboard</a> <a href="{{ url_for('logout') }}">Logout</a>
+{% else %} <a href="{{ url_for('login') }}">Login</a> <a href="{{ url_for('register') }}">Register</a>
+{% endif %}
+
+</nav>
+
+</header>
+
+<section class="hero">
+
+<img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" alt="SPACE LIO AI Logo">
+
+<h1>Earn Online With {{ APP_NAME }}</h1>
+
+<p>
+Complete tasks, grow your affiliate network, and withdraw your earnings easily.
+Join thousands of users earning online today.
+</p>
+
+<a href="{{ url_for('register') }}">
+<button>Start Earning</button>
+</a>
+
+</section>
+
+<section class="features">
+
+<h2>Platform Features</h2>
+
+<div class="grid">
+
+<div class="box">
+<h3>💰 Earn From Tasks</h3>
+<p>Complete simple tasks and earn rewards instantly.</p>
+</div>
+
+<div class="box">
+<h3>🚀 Affiliate Program</h3>
+<p>Invite friends and earn referral bonuses.</p>
+</div>
+
+<div class="box">
+<h3>⚡ Fast Withdrawals</h3>
+<p>Withdraw your earnings easily through supported methods.</p>
+</div>
+
+<div class="box">
+<h3>🔒 Secure System</h3>
+<p>Your data and payments are protected.</p>
+</div>
+
+</div>
+
+</section>
+
+<section class="how">
+
+<h2>How It Works</h2>
+
+<div class="steps">
+
+<p><strong>1.</strong> Register your account.</p>
+
+<p><strong>2.</strong> Complete available tasks.</p>
+
+<p><strong>3.</strong> Earn rewards and referral bonuses.</p>
+
+<p><strong>4.</strong> Withdraw your earnings.</p>
+
+</div>
+
+</section>
+
+<footer>
+
+<p>© 2026 {{ APP_NAME }} | All Rights Reserved</p>
+
+</footer>
+
+</body>
+</html>

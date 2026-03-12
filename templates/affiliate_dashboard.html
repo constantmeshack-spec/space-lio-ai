@@ -1,93 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta charset="UTF-8">
-    <title>Affiliate Dashboard - {{ APP_NAME }}</title>
-    <style>
-        /* Mobile fixes */
-        @media (max-width: 600px) {
-            body { margin: 10px; font-size: 14px; }
-            h1, h2 { font-size: 18px; }
-            table { font-size: 13px; }
-            th, td { padding: 6px; }
-            a, button { padding: 4px 8px; font-size: 13px; }
-        }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Affiliate Dashboard - {{ APP_NAME }}</title>
 
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: #000000;  /* FULL PAGE BLACK */
-            color: white; 
-            margin: 0; 
-            padding: 0;
-        }
+<style>
+/* --- GENERAL --- */
+body {
+    background: #0b0018;
+    color: #d4d4ff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0 20px;
+}
 
-        h2 { color: green; }
-        h3, p.subheader { color: skyblue; }
-        p, a, span { color: white; }
+/* --- HOME BUTTON FIXED TOP --- */
+.btn-home-top {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999;
+    color: white;
+    text-decoration: none;
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+.btn-home-top:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 12px #2de2e6, 0 0 18px #7b2ff7;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: #2c2c2c;  /* Slight contrast for table */
-        }
+/* --- HEADINGS --- */
+h1, h2, h3 {
+    color: #7cf7ff;
+    margin-bottom: 10px;
+}
+.subheader {
+    color: #d4d4ff;
+    margin-bottom: 15px;
+}
 
-        th, td {
-            padding: 10px;
-            border: 1px solid #444;
-            text-align: left;
-        }
+/* --- CONTAINER --- */
+.container {
+    max-width: 900px;
+    margin: 80px auto 40px auto;
+    padding: 20px;
+}
 
-        th { background-color: #333; color: green; }
+/* --- BOXES --- */
+.card {
+    background: #140030;
+    border: 1px solid #2de2e6;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 12px rgba(45,226,230,0.2);
+}
 
-        button {
-            background-color: darkgreen;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+/* --- TABLE --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #140030;
+    border: 1px solid #2de2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #2de2e6;
+    color: #d4d4ff;
+    text-align: left;
+}
+th {
+    background: #12002b;
+}
 
-        button:hover { background-color: #006400; }
+/* --- FORM ELEMENTS --- */
+input, select {
+    background: #140030;
+    color: #d4d4ff;
+    border: 1px solid #2de2e6;
+    border-radius: 6px;
+    padding: 8px;
+    width: 100%;
+    margin-top: 5px;
+}
+input:focus, select:focus {
+    outline: none;
+    box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
+}
 
-        a { text-decoration: none; color: white; }
+/* --- BUTTONS --- */
+button, a.btn {
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+button:hover, a.btn:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
+}
+button[disabled] {
+    background: #333;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
 
-        .container {
-            max-width: 900px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #1a1a1a; /* Slightly lighter than black */
-            border-radius: 8px;
-        }
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+    body { font-size: 14px; padding: 10px; }
+    th, td, input, select, button { font-size: 13px; padding: 6px; }
+    table { font-size: 12px; }
+}
 
-        input, select {
-            background-color: #2c2c2c;
-            color: white;
-            border: 1px solid #444;
-            padding: 5px;
-            width: 100%;
-            max-width: 300px;
-            margin-top: 5px;
-            border-radius: 3px;
-        }
-
-        label {
-            margin-top: 10px;
-            display: block;
-        }
-    </style>
+/* --- FOOTER --- */
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #12002b;
+    margin-top: 40px;
+    border-top: 1px solid #2de2e6;
+    color: #d4d4ff;
+}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <h2>Affiliate Dashboard</h2>
-        <p class="subheader">Your Referral Code: <strong>{{ referral_code }}</strong></p>
-        <p class="subheader">Total Earnings: KES {{ earnings }}</p>
-<!-- Withdraw Section -->
-<h3 style="color: green;">Withdraw Earnings</h3>
-<form method="POST" action="{{ url_for('affiliate_withdraw') }}" style="margin-top:10px;">
-    <!-- Add this inside your form, before the method select -->
+
+<!-- Home Button Always on Top -->
+<a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
+
+<div class="container">
+
+<h1>Affiliate Dashboard</h1>
+<p class="subheader">Your Referral Code: <strong>{{ referral_code }}</strong></p>
+<p class="subheader">Total Earnings: KES {{ earnings }}</p>
+
+<div class="card">
+<h3>Withdraw Earnings</h3>
+<form method="POST" action="{{ url_for('affiliate_withdraw') }}">
     <label for="withdraw_amount">Amount to Withdraw (KES):</label>
     <input type="number" name="withdraw_amount" id="withdraw_amount" min="100" max="{{ earnings }}" placeholder="Enter amount" required>
 
@@ -114,18 +178,47 @@
         <input type="text" name="bank_account" id="bank_account" placeholder="Account number">
     </div>
 
-    <br>
-       <br>
-    <button type="submit" {% if earnings < 100 %}disabled style="background-color:grey;"{% endif %}>
-        Withdraw Earnings
-    </button>
+    <button type="submit" {% if earnings < 100 %}disabled{% endif %}>Withdraw Earnings</button>
 </form>
+<a href="{{ url_for('affiliate_withdrawals') }}" class="btn">View Withdrawal Status</a>
+{% if earnings < 100 %}
+<p style="color: #d4d4ff; margin-top:5px;">You need at least KES 100 to withdraw. Your earnings: KES {{ earnings }}</p>
+{% endif %}
+</div>
 
-<br>
-<!-- View Withdrawal Status (always available) -->
-<a href="{{ url_for('affiliate_withdrawals') }}">
-    <button type="button">View Withdrawal Status</button>
-</a>
+<div class="card">
+<h3>Invited Members</h3>
+<p class="subheader">Number of People You Invited: {{ invited_count }}</p>
+
+{% if invited_members %}
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Phone</th>
+<th>Joined At</th>
+<th>Joined Affiliate?</th>
+</tr>
+</thead>
+<tbody>
+{% for m in invited_members %}
+<tr>
+<td>{{ m.full_name }}</td>
+<td>{{ m.phone }}</td>
+<td>{{ m.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+<td>{% if m.is_affiliate %}Yes{% else %}No{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p>No invited members yet.</p>
+{% endif %}
+</div>
+
+<a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+
+</div>
 
 <script>
 function showFields(method) {
@@ -134,41 +227,9 @@ function showFields(method) {
 }
 </script>
 
-{% if earnings < 100 %}
-<p style="color: white; margin-top:5px;">You need at least KES 100 to withdraw. Your earnings: KES {{ earnings }}</p>
-{% endif %}
+<footer>
+© 2026 {{ APP_NAME }}. All rights reserved.<br>FROM: THE LIO'<S></S>
+</footer>
 
-
-        <p class="subheader">Number of People You Invited: {{ invited_count }}</p>
-
-        <h3 class="subheader">Invited Members</h3>
-        {% if invited_members %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Joined At</th>
-                    <th>Joined Affiliate?</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for m in invited_members %}
-                <tr>
-                    <td>{{ m.full_name }}</td>
-                    <td>{{ m.phone }}</td>
-                    <td>{{ m.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td>{% if m.is_affiliate %}Yes{% else %}No{% endif %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No invited members yet.</p>
-        {% endif %}
-
-        <br>
-        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
-    </div>
 </body>
 </html>
