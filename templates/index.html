@@ -170,8 +170,12 @@ border-top:1px solid #2de2e6;
 
 <nav>
 
-{% if session.get("user_id") %} <a href="{{ url_for('dashboard') }}">Dashboard</a> <a href="{{ url_for('logout') }}">Logout</a>
-{% else %} <a href="{{ url_for('login') }}">Login</a> <a href="{{ url_for('register') }}">Register</a>
+{% if session.get("user_id") %} <a href="{{ url_for('dashboard') }}">Dashboard</a>
+ </br> 
+ <a href="{{ url_for('logout') }}">Logout</a>
+{% else %} <a href="{{ url_for('login') }}">Login</a>
+<br><br>
+ <a href="{{ url_for('register') }}">Register</a>
 {% endif %}
 
 </nav>

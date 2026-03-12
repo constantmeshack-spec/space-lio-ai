@@ -1,56 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{{ APP_NAME }} - Withdraw</title>
-    <style>
-        body { background-color: #121212; color: white; font-family: Arial, sans-serif; }
-        .card { border: 1px solid green; padding: 15px; margin: 15px 0; }
-        .btn { background-color: darkgreen; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; }
-        .btn:hover { background-color: #006400; }
-        input, select { padding: 6px; margin: 5px 0; width: 100%; }
-    </style>
-    <script>
-        function toggleFields() {
-            var method = document.getElementById("method").value;
-            document.getElementById("mpesa_fields").style.display = (method=="mpesa") ? "block" : "none";
-            document.getElementById("bank_fields").style.display = (method=="bank") ? "block" : "none";
-        }
-    </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ APP_NAME }} - Withdraw</title>
+
+<style>
+/* --- GENERAL --- */
+body {
+    background: #0b0018;
+    color: #d4d4ff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+/* --- HOME BUTTON FIXED TOP --- */
+.btn-home-top {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999;
+    color: white;
+    text-decoration: none;
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+.btn-home-top:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 12px #2de2e6, 0 0 18px #7b2ff7;
+}
+
+/* --- HEADINGS --- */
+h1, h2 {
+    color: #7cf7ff;
+    margin-bottom: 15px;
+}
+
+/* --- CARD --- */
+.card {
+    background: #140030;
+    border: 1px solid #2de2e6;
+    border-radius: 12px;
+    padding: 25px;
+    max-width: 500px;
+    margin: 80px auto 40px auto;
+    box-shadow: 0 0 12px rgba(45,226,230,0.2);
+}
+
+/* --- FORM ELEMENTS --- */
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #2de2e6;
+    background: #140030;
+    color: #d4d4ff;
+}
+input:focus, select:focus {
+    outline: none;
+    box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
+}
+
+/* --- BUTTONS --- */
+button, a.btn {
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+button:hover, a.btn:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
+}
+button[disabled] {
+    background: #333;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* --- LINKS --- */
+a {
+    color: #d4d4ff;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+    body { font-size: 14px; padding: 10px; }
+    input, select, button, a { font-size: 13px; padding: 8px; }
+}
+</style>
+
+<script>
+function toggleFields() {
+    var method = document.getElementById("method").value;
+    document.getElementById("mpesa_fields").style.display = (method==="mpesa") ? "block" : "none";
+    document.getElementById("bank_fields").style.display = (method==="bank") ? "block" : "none";
+}
+</script>
 </head>
+
 <body>
-    <h1>Withdraw Balance</h1>
-    <div class="card">
-        <form action="{{ url_for('user_withdraw') }}" method="POST">
-            <p><strong>Current Balance: KES {{ user.balance }}</strong></p>
-            <label for="withdraw_amount">Amount to Withdraw:</label>
-            <input type="number" name="withdraw_amount" id="withdraw_amount" max="{{ user.balance }}" min="500" required>
 
-            <label for="method">Select Method:</label>
-            <select name="method" id="method" onchange="toggleFields()" required>
-                <option value="">--Select--</option>
-                <option value="mpesa">MPESA</option>
-                <option value="bank">Bank</option>
-            </select>
+<!-- Home Button Always on Top -->
+<a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
 
-            <div id="mpesa_fields" style="display:none;">
-                <label for="mpesa_phone">MPESA Phone:</label>
-                <input type="text" name="mpesa_phone" id="mpesa_phone">
-            </div>
+<h1>Withdraw Balance</h1>
 
-            <div id="bank_fields" style="display:none;">
-                <label for="bank_name">Bank Name:</label>
-                <input type="text" name="bank_name" id="bank_name">
-                <label for="bank_paybill">Paybill:</label>
-                <input type="text" name="bank_paybill" id="bank_paybill">
-                <label for="bank_account">Account Number:</label>
-                <input type="text" name="bank_account" id="bank_account">
-            </div>
+<div class="card">
+<form action="{{ url_for('user_withdraw') }}" method="POST">
+    <p><strong>Current Balance: KES {{ user.balance }}</strong></p>
 
-            <button type="submit" class="btn">Submit Withdraw</button>
-        </form>
-        <br>
-        <a class="btn" href="{{ url_for('view_withdraw_status') }}">View Withdraw Status</a>
+    <label for="withdraw_amount">Amount to Withdraw:</label>
+    <input type="number" name="withdraw_amount" id="withdraw_amount" max="{{ user.balance }}" min="500" required>
+
+    <label for="method">Select Method:</label>
+    <select name="method" id="method" onchange="toggleFields()" required>
+        <option value="">--Select--</option>
+        <option value="mpesa">MPESA</option>
+        <option value="bank">Bank</option>
+    </select>
+
+    <div id="mpesa_fields" style="display:none; margin-top:10px;">
+        <label for="mpesa_phone">MPESA Phone:</label>
+        <input type="text" name="mpesa_phone" id="mpesa_phone" placeholder="2547XXXXXXXX">
     </div>
+
+    <div id="bank_fields" style="display:none; margin-top:10px;">
+        <label for="bank_name">Bank Name:</label>
+        <input type="text" name="bank_name" id="bank_name" placeholder="Your bank name">
+
+        <label for="bank_paybill">Paybill:</label>
+        <input type="text" name="bank_paybill" id="bank_paybill" placeholder="Paybill">
+
+        <label for="bank_account">Account Number:</label>
+        <input type="text" name="bank_account" id="bank_account" placeholder="Account number">
+    </div>
+
+    <button type="submit">Submit Withdraw</button>
+</form>
+
+<a href="{{ url_for('view_withdraw_status') }}" class="btn">View Withdraw Status</a>
+</div>
+
+<footer style="text-align:center; margin-top:40px; color:#d4d4ff;">
+© 2026 {{ APP_NAME }}. All rights reserved.<br>CEO: MESHACK CONSTANT
+</footer>
+
 </body>
 </html>

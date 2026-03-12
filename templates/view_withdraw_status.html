@@ -2,42 +2,138 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Withdraw Status - {{ APP_NAME }}</title>
+
 <style>
-    body { background-color: #121212; color: white; font-family: Arial, sans-serif; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid white; padding: 10px; text-align: left; }
-    th { background-color: darkgreen; }
+/* --- GENERAL --- */
+body {
+    background: #0b0018;
+    color: #d4d4ff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+/* --- HOME BUTTON FIXED TOP --- */
+.btn-home-top {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999;
+    color: white;
+    text-decoration: none;
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+.btn-home-top:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 12px #2de2e6, 0 0 18px #7b2ff7;
+}
+
+/* --- HEADINGS --- */
+h1 {
+    color: #7cf7ff;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* --- TABLE --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #140030;
+    border: 1px solid #2de2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+th, td {
+    border: 1px solid #2de2e6;
+    padding: 12px;
+    text-align: left;
+}
+th {
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    color: white;
+}
+td {
+    background: #140030;
+    color: #d4d4ff;
+}
+
+/* --- BUTTONS / LINKS --- */
+a.btn {
+    display: inline-block;
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin-top: 15px;
+    text-decoration: none;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+a.btn:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+    body { font-size: 14px; padding: 10px; }
+    table, th, td { font-size: 13px; padding: 8px; }
+    a.btn { font-size: 13px; padding: 8px 12px; }
+}
 </style>
 </head>
+
 <body>
+
+<!-- Home Button Always on Top -->
+<a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
+
 <h1>Withdrawal Status</h1>
+
 <table>
-    <tr>
-        <th>Amount</th>
-        <th>Method</th>
-        <th>Details</th>
-        <th>Status</th>
-        <th>Timestamp</th>
-    </tr>
-    {% for w in withdrawals %}
-    <tr>
-        <td>KES {{ w.amount }}</td>
-        <td>{{ w.withdraw_method|capitalize }}</td>
-        <td>
-            {% if w.withdraw_method=='mpesa' %}
-                Phone: {{ w.mpesa_phone }}
-            {% elif w.withdraw_method=='bank' %}
-                Bank: {{ w.bank_name }} <br>
-                Paybill: {{ w.paybill }} <br>
-                Acc#: {{ w.account_no }}
-            {% endif %}
-        </td>
-        <td>{{ w.status|capitalize }}</td>
-        <td>{{ w.timestamp }}</td>
-    </tr>
-    {% endfor %}
+<thead>
+<tr>
+    <th>Amount</th>
+    <th>Method</th>
+    <th>Details</th>
+    <th>Status</th>
+    <th>Timestamp</th>
+</tr>
+</thead>
+<tbody>
+{% for w in withdrawals %}
+<tr>
+    <td>KES {{ w.amount }}</td>
+    <td>{{ w.withdraw_method|capitalize }}</td>
+    <td>
+        {% if w.withdraw_method=='mpesa' %}
+            Phone: {{ w.mpesa_phone }}
+        {% elif w.withdraw_method=='bank' %}
+            Bank: {{ w.bank_name }} <br>
+            Paybill: {{ w.paybill }} <br>
+            Acc#: {{ w.account_no }}
+        {% endif %}
+    </td>
+    <td>{{ w.status|capitalize }}</td>
+    <td>{{ w.timestamp }}</td>
+</tr>
+{% endfor %}
+</tbody>
 </table>
-<a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+
+<div style="text-align:center;">
+    <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+</div>
+
+<footer style="text-align:center; margin-top:40px; color:#d4d4ff;">
+© 2026 {{ APP_NAME }}. All rights reserved.<br>CEO: MESHACK CONSTANT
+</footer>
+
 </body>
 </html>

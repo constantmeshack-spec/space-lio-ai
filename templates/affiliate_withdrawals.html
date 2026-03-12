@@ -3,68 +3,171 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Withdrawal Status - {{ APP_NAME }}</title>
+<title>Withdrawal Requests - {{ APP_NAME }}</title>
+
 <style>
-    body { font-family: Arial, sans-serif; background-color: black; color: white; margin:0; padding:0; }
-    h2 { color: green; text-align:center; margin-top:20px; }
-    table { width: 95%; margin: 20px auto; border-collapse: collapse; background-color: #2c2c2c; }
-    th, td { padding: 10px; border: 1px solid #444; text-align: left; }
-    th { background-color: #333; color: green; }
-    .status-pending { color: yellow; font-weight: bold; }
-    .status-completed { color: lightgreen; font-weight: bold; }
-    .status-failed { color: red; font-weight: bold; }
-    .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-    a { color: white; text-decoration: none; }
+/* --- GENERAL --- */
+body {
+    background: #0b0018;
+    color: #d4d4ff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+/* --- HOME BUTTON FIXED TOP --- */
+.btn-home-top {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999;
+    color: white;
+    text-decoration: none;
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+.btn-home-top:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 12px #2de2e6, 0 0 18px #7b2ff7;
+}
+
+/* --- LOGO --- */
+.logo {
+    display: block;
+    margin: 20px auto;
+    width: 120px;
+    border-radius: 50%;
+}
+
+/* --- HEADINGS --- */
+h1, h2 {
+    color: #7cf7ff;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* --- TABLE --- */
+table {
+    width: 95%;
+    margin: 0 auto 30px auto;
+    border-collapse: collapse;
+    background: #140030;
+    border: 1px solid #2de2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+th, td {
+    border: 1px solid #2de2e6;
+    padding: 12px;
+    text-align: left;
+}
+th {
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    color: white;
+}
+td {
+    background: #140030;
+    color: #d4d4ff;
+}
+
+/* --- STATUS COLORS --- */
+.status-pending { color: yellow; font-weight: bold; }
+.status-completed { color: lightgreen; font-weight: bold; }
+.status-failed { color: red; font-weight: bold; }
+
+/* --- BUTTONS / LINKS --- */
+a.btn, a {
+    display: inline-block;
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin: 10px auto;
+    text-decoration: none;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+a.btn:hover, a:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
+}
+a.centered {
+    display: block;
+    width: fit-content;
+    margin: 0 auto 40px auto;
+    text-align: center;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+    body { font-size: 14px; padding: 10px; }
+    table, th, td { font-size: 13px; padding: 8px; }
+    a.btn, a { font-size: 13px; padding: 8px 12px; }
+    .logo { width: 80px; }
+}
 </style>
 </head>
+
 <body>
-<div class="container">
-    <h2>Withdrawal Requests</h2>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Amount (KES)</th>
-                <th>Method</th>
-                <th>MPESA / Bank Details</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for w in withdrawals %}
-            <tr>
-                <td>{{ w.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>{{ w.amount }}</td>
-                <td>{{ w.withdraw_method or '-' }}</td>
-                <td>
-                    {% if w.withdraw_method == 'mpesa' %}
-                        Phone: {{ w.mpesa_phone }}
-                    {% elif w.withdraw_method == 'bank' %}
-                        Bank: {{ w.bank_name }}<br>
-                        Paybill: {{ w.paybill }}<br>
-                        Account: {{ w.account_no }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>
-                    {% if w.status == 'pending' %}
-                        <span class="status-pending">Pending</span>
-                    {% elif w.status == 'completed' %}
-                        <span class="status-completed">Paid</span>
-                    {% else %}
-                        <span class="status-failed">Rejected</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="5" style="text-align:center;">No withdrawal requests yet.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Home Button Always on Top -->
+<a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
 
-    <a href="{{ url_for('affiliate_dashboard') }}">Back to Dashboard</a>
-</div>
+<!-- Logo -->
+<img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" alt="{{ APP_NAME }} Logo" class="logo">
+
+<h2>Withdrawal Requests</h2>
+
+<table>
+<thead>
+<tr>
+    <th>Date</th>
+    <th>Amount (KES)</th>
+    <th>Method</th>
+    <th>MPESA / Bank Details</th>
+    <th>Status</th>
+</tr>
+</thead>
+<tbody>
+{% for w in withdrawals %}
+<tr>
+    <td>{{ w.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+    <td>{{ w.amount }}</td>
+    <td>{{ w.withdraw_method or '-' }}</td>
+    <td>
+        {% if w.withdraw_method == 'mpesa' %}
+            Phone: {{ w.mpesa_phone }}
+        {% elif w.withdraw_method == 'bank' %}
+            Bank: {{ w.bank_name }}<br>
+            Paybill: {{ w.paybill }}<br>
+            Account: {{ w.account_no }}
+        {% else %}
+            -
+        {% endif %}
+    </td>
+    <td>
+        {% if w.status == 'pending' %}
+            <span class="status-pending">Pending</span>
+        {% elif w.status == 'completed' %}
+            <span class="status-completed">Paid</span>
+        {% else %}
+            <span class="status-failed">Rejected</span>
+        {% endif %}
+    </td>
+</tr>
+{% else %}
+<tr><td colspan="5" style="text-align:center;">No withdrawal requests yet.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+
+<a href="{{ url_for('affiliate_dashboard') }}" class="btn centered">Back to Dashboard</a>
+
+<footer style="text-align:center; margin-top:40px; color:#d4d4ff;">
+© 2026 {{ APP_NAME }}. All rights reserved.<br>CEO: MESHACK CONSTANT
+</footer>
+
 </body>
 </html>
