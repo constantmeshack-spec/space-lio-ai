@@ -1,45 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta charset="UTF-8">
-    <title>Join Affiliate - {{ APP_NAME }}</title>
-    <style>
-        /* Mobile fixes */
-        @media (max-width: 600px) {
-            body { margin: 10px; font-size: 14px; }
-            h1, h2 { font-size: 18px; }
-            input, button { font-size: 13px; padding: 6px; }
-        }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Join Affiliate - {{ APP_NAME }}</title>
 
-        body { background-color: #121212; color: white; font-family: Arial, sans-serif; }
-        h1 { color: lightgreen; }
-        h2 { color: blue; }
-        .card { border: 1px solid green; padding: 15px; margin: 15px 0; max-width: 500px; }
-        input { width: 100%; padding: 8px; margin: 8px 0; border-radius: 4px; border: 1px solid #444; background-color: #1e1e1e; color: white; }
-        .btn { background-color: darkgreen; color: white; padding: 8px 12px; border: none; border-radius: 4px; text-decoration: none; cursor: pointer; }
-        .btn:hover { background-color: #006400; }
-        a { color: white; text-decoration: none; }
-    </style>
+<style>
+/* --- GENERAL --- */
+body {
+    background: #0b0018;
+    color: #d4d4ff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+/* --- HOME BUTTON FIXED TOP --- */
+.btn-home-top {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999;
+    color: white;
+    text-decoration: none;
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+.btn-home-top:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 12px #2de2e6, 0 0 18px #7b2ff7;
+}
+
+/* --- HEADINGS --- */
+h1, h2 {
+    color: #7cf7ff;
+    margin-bottom: 10px;
+}
+
+/* --- CARD --- */
+.card {
+    background: #140030;
+    border: 1px solid #2de2e6;
+    border-radius: 12px;
+    padding: 25px;
+    max-width: 500px;
+    margin: 50px auto;
+    box-shadow: 0 0 12px rgba(45,226,230,0.2);
+}
+
+/* --- FORM ELEMENTS --- */
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #2de2e6;
+    background: #140030;
+    color: #d4d4ff;
+}
+input:focus {
+    outline: none;
+    box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
+}
+
+/* --- BUTTONS --- */
+button, a.btn {
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+    transition: opacity 0.3s, box-shadow 0.3s;
+}
+button:hover, a.btn:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
+}
+
+/* --- LINKS --- */
+a {
+    color: #d4d4ff;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+    body { font-size: 14px; padding: 10px; }
+    input, button, a { font-size: 13px; padding: 8px; }
+}
+</style>
 </head>
+
 <body>
-    <h1>Join Affiliate Programme</h1>
-    <div class="card">
-        <h2>Enter Details</h2>
-        <form method="POST" action="{{ url_for('process_affiliate_join') }}">
-            <label for="referral_code">Referral Code (Optional):</label>
-            <input type="text" id="referral_code" name="referral_code" placeholder="Enter referral code if any">
 
-           <label for="phone">Phone Number (format, e.g., 2547XXXXXXXX):</label>
-           <input type="text" name="phone" id="phone" 
-                  pattern="2547[0-9]{8}" 
-                  title="Phone number must start with 2547 followed by 8 digits" 
-                  required>
+<!-- Home Button Always on Top -->
+<a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
 
-            <button type="submit" class="btn">Join & Pay KES 100</button>
-        </form>
-    </div>
+<h1>Join Affiliate Programme</h1>
 
-    <p><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+<div class="card">
+<h2>Enter Details</h2>
+<form method="POST" action="{{ url_for('process_affiliate_join') }}">
+    <label for="referral_code">Referral Code (Optional):</label>
+    <input type="text" id="referral_code" name="referral_code" placeholder="Enter referral code if any">
+
+    <label for="phone">Phone Number (format, e.g., 07XXXXXXXX):</label>
+    <input type="text" name="phone" id="phone" 
+           pattern="0[0-9]{9}" 
+           title="Phone number must start with 0 followed by 9 digits" 
+           required>
+
+    <button type="submit">Join & Pay KES 100</button>
+</form>
+</div>
+
+<p style="text-align:center;"><a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a></p>
+
+<footer style="text-align:center; margin-top:40px; color:#d4d4ff;">
+© 2026 {{ APP_NAME }}. All rights reserved.<br>CEO: MESHACK CONSTANT
+</footer>
+
 </body>
 </html>
