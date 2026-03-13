@@ -1012,6 +1012,37 @@ def paystack_webhook():
 
     return "OK", 200
 
+from flask import Response
+
+@app.route("/sitemap.xml", methods=["GET"])
+def sitemap():
+    pages = []
+
+    # List your main pages
+    routes = [
+        "index",
+        "register",
+        "login",
+        "tasks",
+        "affiliate",
+        "dashboard"
+    ]
+
+    for route in routes:
+        url = url_for(route, _external=True)
+        pages.append(f"""
+        <url>
+            <loc>{url}</loc>
+        </url>
+        """)
+
+    sitemap_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+        {''.join(pages)}
+    </urlset>"""
+
+    return Response(sitemap_xml, mimetype="application/xml")
+
 # ----------------- Run App -----------------
 if __name__ == "__main__":
        app.run(host="0.0.0.0", port=5000, debug=False)
