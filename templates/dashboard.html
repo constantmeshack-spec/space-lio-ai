@@ -115,11 +115,7 @@ footer {
      class="logo" 
      style="display:block; margin:20px auto; width:120px; border-radius:50%;">
 <a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
-<a href="{{ url_for('notifications') }}">
-<button>🔔 Notifications</button>
-<a href="{{ url_for('notifications') }}">
-<button>
-🔔 Notifications ({{ user.notifications|selectattr("is_read","equalto",False)|list|length }})
+<a href="{{ url_for('notifications') }}">🔔({{ user.notifications|selectattr("is_read","equalto",False)|list|length }})
 </button>
 </a>
 
@@ -149,6 +145,10 @@ footer {
     <h2>Quick Links</h2>
     <p><a class="btn" href="{{ url_for('tasks') }}">Go to Tasks</a></p>
     <p><a class="btn" href="{{ url_for('affiliate') }}">Affiliate Programme</a></p>
+    <br><br>
+<a href="{{ url_for('cash_dashboard') }}">
+<button>💰 CASH Dashboard</button>
+</a>
     <p><a class="btn" href="{{ url_for('logout') }}">Logout</a></p>
 </div>
 

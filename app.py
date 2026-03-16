@@ -172,6 +172,19 @@ class Notification(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", backref="notifications")
+    # Earn With Ads settings
+class AdSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    reward = db.Column(db.Float, default=0.01)
+    daily_limit = db.Column(db.Integer, default=20)
+    cooldown = db.Column(db.Integer, default=30)  # seconds between ads
+
+
+# Track user ad views
+class AdView(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 # ----------------- Helpers -----------------
 def login_required(f):
     @wraps(f)
@@ -342,6 +355,33 @@ def contact():
     messages = ContactMessage.query.filter_by(user_id=user.id).order_by(ContactMessage.timestamp.desc()).all()
 
     return render_template("contact.html", user=user, messages=messages)
+
+    from datetime import datetime, timedelta
+
+@app.route("/earn_ads")
+@login_required
+def earn_ads():
+
+    settings = AdSettings.query.first()
+    from datetime import datetime
+    today = datetime.utcnow().date()
+
+    views_today = AdView.query.filter(
+        AdView.user_id == session["user_id"],
+        db.func.date(AdView.timestamp) == today
+    ).count()
+
+    return render_template(
+        "earn_ads.html",
+        settings=settings,
+        views_today=views_today
+    )
+
+@app.route("/cash_dashboard")
+@login_required
+def cash_dashboard():
+    return render_template("cash_dashboard.html")
+
 # ----------- Dashboard & Tasks -----------
 @app.route("/dashboard")
 @login_required
@@ -664,6 +704,54 @@ def admin_balance_withdrawals():
         type="balance_withdraw"
     ).order_by(AffiliateTransaction.timestamp.desc()).all()
     return render_template("admin_balance_withdrawals.html", withdrawals=withdrawals)
+
+@app.route("/reward_ad", methods=["POST"])
+@login_required
+def reward_ad():
+
+    settings = AdSettings.query.first()
+
+    today = datetime.utcnow().date()
+
+    views_today = AdView.query.filter(
+        AdView.user_id == current_user.id,
+        db.func.date(AdView.timestamp) == today
+    ).count()
+
+    if views_today >= settings.daily_limit:
+        return {"status": "limit"}
+
+    view = AdView(user_id=current_user.id)
+    db.session.add(view)
+
+    current_user.balance += settings.reward
+
+    db.session.commit()
+
+    return {"status": "success", "reward": settings.reward}
+
+@app.route("/admin/ads_settings", methods=["GET","POST"])
+@admin_required
+def ads_settings():
+
+    settings = AdSettings.query.first()
+
+    if not settings:
+        settings = AdSettings()
+        db.session.add(settings)
+        db.session.commit()
+
+    if request.method == "POST":
+
+        settings.reward = float(request.form["reward"])
+        settings.daily_limit = int(request.form["limit"])
+        settings.cooldown = int(request.form["cooldown"])
+
+        db.session.commit()
+
+        flash("Ad settings updated")
+
+    return render_template("admin_ads.html", settings=settings)
 
 @app.route("/admin/process_balance_withdraw/<int:transaction_id>", methods=["POST"])
 @admin_required

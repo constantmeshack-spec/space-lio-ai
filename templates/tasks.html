@@ -193,7 +193,7 @@ footer {
 {% set user_submission = t.submissions | selectattr("user_id","equalto",user.id) | list %}
 {% if user_submission %}
   {% set file = user_submission[0].submission_file %}
-  {% set file_ext = file.split('.')[-1].lower() %}
+  {% set file_ext = (file.split('.')[-1].lower()) if file else '' %}
   {% if file_ext in ['jpg','jpeg','png','gif'] %}
     <img src="{{ url_for('uploaded_file', filename=file) }}" alt="Your Submission">
   {% elif file_ext in ['pdf'] %}

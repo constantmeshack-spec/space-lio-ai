@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Ads Settings</title>
+
+<style>
+
+body{
+background:#0b0018;
+color:white;
+font-family:Arial;
+padding:20px;
+}
+
+.card{
+background:#140030;
+border:1px solid #2de2e6;
+border-radius:10px;
+padding:25px;
+max-width:500px;
+margin:auto;
+}
+
+h2{
+color:#7cf7ff;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:5px;
+margin-bottom:15px;
+border-radius:6px;
+border:1px solid #2de2e6;
+background:#12002b;
+color:white;
+}
+
+button{
+padding:12px 20px;
+border:none;
+border-radius:8px;
+background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+opacity:0.85;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Ad Earnings Settings</h2>
+
+<form method="POST">
+
+<label>Reward per Ad ($)</label>
+<input type="number" step="0.001" name="reward" value="{{ settings.reward }}">
+
+<label>Daily Ad Limit</label>
+<input type="number" name="limit" value="{{ settings.daily_limit }}">
+
+<label>Cooldown Between Ads (seconds)</label>
+<input type="number" name="cooldown" value="{{ settings.cooldown }}">
+
+<button type="submit">Save Settings</button>
+
+</form>
+
+</div>
+
+</body>
+</html>

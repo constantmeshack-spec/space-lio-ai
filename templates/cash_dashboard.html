@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Cash Dashboard | {{ APP_NAME }}</title>
+
+<style>
+
+/* MAIN */
+
+body{
+background:#0b0018;
+color:white;
+font-family:Arial, sans-serif;
+margin:0;
+padding:20px;
+}
+
+/* CONTAINER */
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+/* HEADER */
+
+h2{
+text-align:center;
+color:#7cf7ff;
+margin-bottom:30px;
+}
+
+/* GRID */
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+}
+
+/* CARD */
+
+.card{
+background:#140030;
+padding:30px;
+border-radius:10px;
+border:1px solid #2de2e6;
+text-align:center;
+}
+
+/* TITLE */
+
+.card h3{
+color:#7cf7ff;
+margin-bottom:10px;
+}
+
+/* DESCRIPTION */
+
+.card p{
+color:#d4d4ff;
+margin-bottom:20px;
+}
+
+/* BUTTON */
+
+.card a{
+text-decoration:none;
+}
+
+.card button{
+padding:12px 24px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+color:white;
+background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+font-size:15px;
+}
+
+.card button:hover{
+opacity:0.85;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Cash Dashboard</h2>
+
+<div class="grid">
+
+<!-- TASKS -->
+
+<div class="card">
+
+<h3>💰 Tasks</h3>
+
+<p>
+Complete available tasks and earn rewards instantly.
+</p>
+
+<a href="{{ url_for('tasks') }}">
+<button>Start Tasks</button>
+</a>
+
+</div>
+
+
+<!-- AFFILIATE -->
+
+<div class="card">
+
+<h3>🚀 Affiliate Program</h3>
+
+<p>
+Invite friends and earn referral commissions.
+</p>
+
+<a href="{{ url_for('affiliate') }}">
+<button>View Affiliate</button>
+</a>
+
+</div>
+
+
+<!-- EARN ADS -->
+
+<div class="card">
+
+<h3>📺 Earn With Ads</h3>
+
+<p>
+Watch sponsored ads and earn money for every view.
+</p>
+
+<a href="{{ url_for('earn_ads') }}">
+<button>Watch Ads</button>
+</a>
+
+</div>
+<a href="{{ url_for('dashboard') }}">
+    <button>Go to Dashboard</button>
+
+
+</div>
+
+</div>
+
+</body>
+</html>
+```

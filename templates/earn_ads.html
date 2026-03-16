@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Earn With Ads</title>
+
+<style>
+
+body{
+background:#0b0018;
+color:white;
+font-family:Arial, sans-serif;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:700px;
+margin:auto;
+}
+
+.card{
+background:#140030;
+border:1px solid #2de2e6;
+border-radius:10px;
+padding:25px;
+text-align:center;
+}
+
+h2{
+color:#7cf7ff;
+}
+
+p{
+color:#d4d4ff;
+}
+
+button{
+padding:14px 28px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+color:white;
+background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+}
+
+button:hover{
+opacity:0.85;
+}
+
+.ad-box{
+background:#12002b;
+border-radius:8px;
+padding:20px;
+margin-top:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h2>Earn With Ads</h2>
+
+<p>
+Watch ads and earn <b>$ {{ settings.reward }}</b> per ad
+</p>
+
+<p>
+Ads watched today: {{ views_today }} / {{ settings.daily_limit }}
+</p>
+
+<button onclick="watchAd()">Watch Ad</button>
+
+<div class="ad-box" id="adArea">
+Advertisement will appear here
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function watchAd(){
+
+let ad = document.getElementById("adArea")
+
+ad.innerHTML = `
+<video width="100%" autoplay controls>
+<source src="/static/sample_ad.mp4" type="video/mp4">
+</video>
+<p>Watch full ad to earn</p>
+`
+
+setTimeout(function(){
+
+fetch("/reward_ad",{method:"POST"})
+.then(res=>res.json())
+.then(data=>{
+
+if(data.status=="success"){
+alert("You earned $" + data.reward)
+location.reload()
+}
+
+if(data.status=="limit"){
+alert("Daily ad limit reached")
+}
+
+})
+
+},10000)
+
+}
+
+</script>
+
+</body>
+</html>
