@@ -257,7 +257,6 @@ Join thousands of users earning online today.
         <a href="{{ url_for('contact') }}">CONTACT US</a> 
         <a href="{{ url_for('about') }}">ABOUT</a>
     {% if user %}
-        <a href="{{ url_for('dashboard') }}">Dashboard</a>
         <a href="{{ url_for('logout') }}">Logout</a>
     {% else %}
         <a href="{{ url_for('login') }}">Login</a>
