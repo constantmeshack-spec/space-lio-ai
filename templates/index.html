@@ -167,18 +167,15 @@ border-top:1px solid #2de2e6;
 <header>
 
 <div class="logo">{{ APP_NAME }}</div>
-
 <nav>
+    <div style="text-align:center; margin-top:40px;">
 
-{% if session.get("user_id") %} <a href="{{ url_for('dashboard') }}">Dashboard</a>
- </br> 
- <a href="{{ url_for('logout') }}">Logout</a>
-{% else %} <a href="{{ url_for('login') }}">Login</a>
-<br><br>
- <a href="{{ url_for('register') }}">Register</a>
-{% endif %}
+    <a href="{{ url_for('index') }}">Home</a>
+    <a href="{{ url_for('tasks') }}">TASKS</a>
+    <a href="{{ url_for('affiliate') }}">AFFILIATE</a>
 
 </nav>
+
 
 </header>
 
@@ -193,9 +190,16 @@ Complete tasks, grow your affiliate network, and withdraw your earnings easily.
 Join thousands of users earning online today.
 </p>
 
-<a href="{{ url_for('register') }}">
-<button>Start Earning</button>
+{% if user %}
+<a href="{{ url_for('dashboard') }}">
+    <button>Go to Dashboard</button>
 </a>
+{% else %}
+<a href="{{ url_for('register') }}">
+    <button>Start Earning</button>
+</a>
+{% endif %}
+
 
 </section>
 
@@ -248,6 +252,16 @@ Join thousands of users earning online today.
 </section>
 
 <footer>
+<nav>
+      <div style="text-align:center; margin-top:40px;">  
+    {% if user %}
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    {% else %}
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('register') }}">Register</a>
+    {% endif %}
+</nav>
 
 <p>© 2026 {{ APP_NAME }} | All Rights Reserved</p>
 

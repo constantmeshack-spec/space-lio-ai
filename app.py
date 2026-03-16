@@ -177,17 +177,11 @@ import requests, base64, datetime, os
 # ----------------- Routes -----------------
 @app.route("/")
 def index():
+    user = None
     user_id = session.get("user_id")
-
     if user_id:
         user = User.query.get(user_id)
-        if user.is_admin:
-            return redirect(url_for("admin_dashboard"))
-        if user.verified:
-            return redirect(url_for("dashboard"))
-        return redirect(url_for("verify_account"))
-
-    return render_template("index.html")
+    return render_template("index.html", user=user)
 
 # ----------- Register -----------
 @app.route("/register", methods=["GET","POST"])
@@ -231,7 +225,7 @@ def login():
         if not user.verified:
             return redirect(url_for("verify_account"))
 
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("index"))
 
     return render_template("login.html")
 
@@ -250,7 +244,7 @@ def logout():
 def verify_account():
     user = User.query.get(session["user_id"])
     if user.verified:
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("index"))
 
     if request.method=="POST":
         id_file = request.files.get("id_file")
@@ -266,8 +260,15 @@ def verify_account():
             return redirect(url_for("verify_account"))
         else:
             flash("No file selected.", "error")
-    return render_template("verify_phone.html", user=user)
+            accept_terms = request.form.get("accept_terms")
 
+        if not accept_terms:
+            flash("You must accept the Terms and Conditions.", "error")
+            return redirect(url_for("verify_account"))
+    return render_template("verify_phone.html", user=user)
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
 # ----------- Dashboard & Tasks -----------
 @app.route("/dashboard")
 @login_required
@@ -835,7 +836,9 @@ def affiliate_complete():
         # Assign referral code if missing
         if not user.referral_code:
             count = User.query.filter_by(is_affiliate=True).count()
-            user.referral_code = f"UCSLAA{count + 1}"
+            import uuid
+        
+        user.referral_code = f"UCSLAA-{uuid.uuid4().hex[:6]}"
 
         # Record join transaction
         db.session.add(AffiliateTransaction(

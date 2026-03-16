@@ -41,6 +41,18 @@
             <label for="id_file" style="color:#1e90ff; font-weight:bold;">Upload your ID document:</label><br><br>
             <input type="file" name="id_file" id="id_file" required 
                    style="padding:8px; border-radius:5px; border:none; width:100%; background-color:#1a1a1a; color:#fff;"><br><br>
+
+    <br><br>
+
+    <input type="checkbox" name="accept_terms" required>
+    I agree to the 
+    <a href="{{ url_for('terms') }}" target="_blank">
+        Terms and Conditions
+    </a>
+
+    <br><br>
+
+   
             <button type="submit" class="btn" style="background-color:#006400; color:#fff; padding:12px 25px; border-radius:6px; border:none; cursor:pointer;">
                 Submit Verification
             </button>
