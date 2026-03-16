@@ -31,13 +31,13 @@ header{
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:15px 40px;
+padding:10px 30px;
 background:#12002b;
 border-bottom:1px solid #2de2e6;
 }
 
 .logo{
-font-size:22px;
+font: size 5px;
 font-weight:bold;
 color:#7cf7ff;
 }
@@ -45,8 +45,8 @@ color:#7cf7ff;
 nav a{
 text-decoration:none;
 color:white;
-margin-left:15px;
-padding:8px 16px;
+margin: left 5px;
+padding:8px 11px;
 border-radius:6px;
 background:linear-gradient(45deg,#2de2e6,#7b2ff7);
 }
@@ -82,8 +82,8 @@ color:#d4d4ff;
 }
 
 .hero button{
-padding:14px 28px;
-font-size:16px;
+padding:10px 18px;
+font-size:30px;
 border:none;
 border-radius:8px;
 cursor:pointer;
@@ -167,12 +167,10 @@ border-top:1px solid #2de2e6;
 <header>
 
 <div class="logo">{{ APP_NAME }}</div>
+</div>
+<br><br>
 <nav>
-    <div style="text-align:center; margin-top:40px;">
-<a href="{{ url_for('notifications') }}">
-<button>🔔 Notifications</button>
-</a>
-
+    <a href="{{ url_for('notifications') }}">🔔</a>
     <a href="{{ url_for('tasks') }}">TASKS</a>
     <a href="{{ url_for('affiliate') }}">AFFILIATE</a>
 
