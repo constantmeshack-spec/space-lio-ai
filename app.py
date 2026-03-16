@@ -1259,10 +1259,6 @@ def sitemap():
 
     return Response(sitemap_xml, mimetype="application/xml")
 
-from flask import Flask, render_template, send_from_directory
-import os
-
-app = Flask(__name__)
 
 # Serve the sw.js file
 @app.route('/sw.js')
