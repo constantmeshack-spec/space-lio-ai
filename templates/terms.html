@@ -2,133 +2,213 @@
 
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Terms and Conditions - SPACE LIO AI</title>
 
-```
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Terms & Conditions | {{ APP_NAME }}</title>
+
 <style>
-    body{
-        font-family: Arial, sans-serif;
-        background:#f4f6f9;
-        margin:0;
-        padding:0;
-    }
 
-    .container{
-        max-width:900px;
-        margin:40px auto;
-        background:white;
-        padding:40px;
-        border-radius:10px;
-        box-shadow:0 0 10px rgba(0,0,0,0.1);
-    }
+/* MAIN */
 
-    h1{
-        text-align:center;
-        color:#333;
-    }
+body{
+background:#0b0018;
+color:white;
+font-family:Arial, sans-serif;
+margin:0;
+}
 
-    h2{
-        margin-top:30px;
-        color:#444;
-    }
+/* NAVBAR */
 
-    p{
-        line-height:1.7;
-        color:#555;
-    }
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 40px;
+background:#12002b;
+border-bottom:1px solid #2de2e6;
+}
 
-    ul{
-        margin-left:20px;
-    }
+.logo{
+font-size:22px;
+font-weight:bold;
+color:#7cf7ff;
+}
 
-    .back-btn{
-        display:inline-block;
-        margin-top:30px;
-        padding:10px 20px;
-        background:#007bff;
-        color:white;
-        text-decoration:none;
-        border-radius:6px;
-    }
+nav a{
+text-decoration:none;
+color:white;
+margin-left:15px;
+padding:8px 16px;
+border-radius:6px;
+background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+}
 
-    .back-btn:hover{
-        background:#0056b3;
-    }
+nav a:hover{
+opacity:0.8;
+}
+
+/* CONTENT */
+
+.container{
+max-width:900px;
+margin:60px auto;
+padding:40px;
+background:#140030;
+border-radius:10px;
+border:1px solid #2de2e6;
+}
+
+.container h1{
+color:#7cf7ff;
+text-align:center;
+margin-bottom:30px;
+}
+
+.container h2{
+color:#7cf7ff;
+margin-top:25px;
+}
+
+.container p{
+color:#d4d4ff;
+line-height:1.7;
+}
+
+.container ul{
+color:#d4d4ff;
+line-height:1.7;
+}
+
+/* BUTTON */
+
+.btn{
+display:inline-block;
+margin-top:30px;
+padding:12px 24px;
+border:none;
+border-radius:8px;
+text-decoration:none;
+color:white;
+background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+}
+
+.btn:hover{
+opacity:0.85;
+}
+
+/* FOOTER */
+
+footer{
+text-align:center;
+padding:20px;
+background:#12002b;
+margin-top:60px;
+border-top:1px solid #2de2e6;
+}
 
 </style>
-```
 
 </head>
 
 <body>
 
+<header>
+
+<div class="logo">{{ APP_NAME }}</div>
+
+<nav>
+<a href="{{ url_for('index') }}">HOME</a>
+
+</nav>
+
+</header>
+
 <div class="container">
 
-<h1>Terms and Conditions</h1>
+<h1>Terms & Conditions</h1>
 
 <p>
-Welcome to <strong>SPACE LIO AI</strong>. By using this platform you agree to the following terms and conditions.
+Welcome to <strong>{{ APP_NAME }}</strong>. By using this platform and verifying your account, you agree to the following Terms and Conditions.
 </p>
 
-<h2>1. User Accounts</h2>
+<h2>1. Account Registration</h2>
+
 <p>
-Users must provide accurate registration information. Each user is responsible for maintaining the confidentiality of their account credentials.
+Users must provide accurate information when registering. Each user is responsible for protecting their login credentials and account activity.
 </p>
 
 <h2>2. Account Verification</h2>
+
 <p>
-To ensure security, users may be required to upload identification documents for account verification. By submitting these documents you confirm they belong to you.
+To access the platform features, users may be required to upload identification documents. By submitting verification documents, you confirm the documents belong to you.
 </p>
 
-<h2>3. Tasks and Rewards</h2>
 <p>
-Users may complete tasks available on the platform and earn rewards. All submissions are reviewed before approval.
+By completing verification, you automatically accept these Terms and Conditions.
+</p>
+
+<h2>3. Tasks and Earnings</h2>
+
+<p>
+Users may complete tasks provided on the platform and receive rewards once the submission is approved by the administrator.
 </p>
 
 <ul>
-<li>Submitting fake work is prohibited.</li>
-<li>Automated task completion is not allowed.</li>
-<li>Any attempt to manipulate the system may result in account suspension.</li>
+<li>Fake submissions are strictly prohibited.</li>
+<li>Automated or bot task completion is not allowed.</li>
+<li>Users attempting to manipulate the system may be banned.</li>
 </ul>
 
 <h2>4. Affiliate Program</h2>
+
 <p>
-Users may join the affiliate program after completing the required payment. Affiliates can earn referral bonuses when inviting new members to the platform.
+Users may join the affiliate program and earn commissions by referring new members. Affiliate earnings depend on successful referrals and platform rules.
 </p>
 
 <h2>5. Withdrawals</h2>
+
 <p>
-Users may request withdrawals after reaching the minimum withdrawal amount. All withdrawals are processed and approved by administrators.
+Users may request withdrawals after reaching the minimum withdrawal threshold. All withdrawal requests are subject to admin approval.
 </p>
 
 <h2>6. Prohibited Activities</h2>
 
 <ul>
 <li>Creating multiple accounts</li>
-<li>Submitting fraudulent task results</li>
+<li>Submitting fraudulent task work</li>
 <li>Uploading harmful or illegal files</li>
 <li>Attempting to hack or disrupt the platform</li>
 </ul>
 
 <h2>7. Account Suspension</h2>
+
 <p>
-SPACE LIO AI reserves the right to suspend or permanently terminate any account that violates these terms.
+{{ APP_NAME }} reserves the right to suspend or permanently terminate accounts that violate these terms.
 </p>
 
-<h2>8. Changes to Terms</h2>
+<h2>8. Updates to Terms</h2>
+
 <p>
-These terms may be updated at any time. Continued use of the platform indicates acceptance of the updated terms.
+These Terms and Conditions may be updated at any time. Continued use of the platform indicates acceptance of the updated terms.
 </p>
 
 <h2>9. Acceptance</h2>
+
 <p>
-By verifying your account or using the services provided by SPACE LIO AI, you confirm that you have read and accepted these Terms and Conditions.
+By verifying your account or using this platform, you confirm that you have read, understood, and agreed to these Terms and Conditions.
 </p>
 
-<a href="{{ url_for('index') }}" class="back-btn">Back to Home</a>
+<a href="{{ url_for('verify_account') }}" class="btn">Back to Verify Account</a>
 
 </div>
+
+<footer>
+
+<p>© 2026 {{ APP_NAME }} | All Rights Reserved</p>
+
+</footer>
 
 </body>
 </html>

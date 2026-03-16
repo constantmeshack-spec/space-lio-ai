@@ -169,8 +169,10 @@ border-top:1px solid #2de2e6;
 <div class="logo">{{ APP_NAME }}</div>
 <nav>
     <div style="text-align:center; margin-top:40px;">
+<a href="{{ url_for('notifications') }}">
+<button>🔔 Notifications</button>
+</a>
 
-    <a href="{{ url_for('index') }}">Home</a>
     <a href="{{ url_for('tasks') }}">TASKS</a>
     <a href="{{ url_for('affiliate') }}">AFFILIATE</a>
 
@@ -253,7 +255,9 @@ Join thousands of users earning online today.
 
 <footer>
 <nav>
-      <div style="text-align:center; margin-top:40px;">  
+      <div style="text-align:center; margin-top:40px;"> 
+        <a href="{{ url_for('contact') }}">CONTACT US</a> 
+        <a href="{{ url_for('about') }}">ABOUT</a>
     {% if user %}
         <a href="{{ url_for('dashboard') }}">Dashboard</a>
         <a href="{{ url_for('logout') }}">Logout</a>

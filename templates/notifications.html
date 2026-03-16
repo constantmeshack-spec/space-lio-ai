@@ -1,0 +1,27 @@
+<h2>Your Notifications</h2>
+
+{% if notifications %}
+
+<ul style="list-style:none; padding:0;">
+
+{% for note in notifications %}
+
+<li style="background:#140030; padding:15px 20px; border-radius:10px; border:1px solid #2de2e6; margin-bottom:15px; color:#d4d4ff;">
+
+<strong style="color:#7cf7ff;">{{ note.title }}</strong><br>
+
+{{ note.message }}<br>
+
+<small style="color:#d4d4ff;">{{ note.timestamp }}</small>
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+{% else %}
+
+<p style="color:#d4d4ff;">No notifications yet.</p>
+
+{% endif %}

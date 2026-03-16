@@ -146,7 +146,32 @@ class AffiliatePayment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", backref="affiliate_payments")
+class ContactMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
 
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    subject = db.Column(db.String(200))
+    message = db.Column(db.Text, nullable=False)
+
+    admin_reply = db.Column(db.Text)
+
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="contact_messages")
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    title = db.Column(db.String(200))
+    message = db.Column(db.Text)
+
+    is_read = db.Column(db.Boolean, default=False)
+
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="notifications")
 # ----------------- Helpers -----------------
 def login_required(f):
     @wraps(f)
@@ -261,14 +286,62 @@ def verify_account():
         else:
             flash("No file selected.", "error")
             accept_terms = request.form.get("accept_terms")
+      
 
-        if not accept_terms:
-            flash("You must accept the Terms and Conditions.", "error")
-            return redirect(url_for("verify_account"))
+            if not accept_terms:
+                flash("You must accept the Terms and Conditions.", "error")
+                return redirect(url_for("verify_account"))
     return render_template("verify_phone.html", user=user)
 @app.route("/terms")
 def terms():
     return render_template("terms.html")
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+@app.route("/notifications")
+@login_required
+def notifications():
+
+    user = User.query.get(session["user_id"])
+
+    notifications = Notification.query.filter_by(
+        user_id=user.id
+    ).order_by(Notification.timestamp.desc()).all()
+
+    return render_template(
+        "notifications.html",
+        notifications=notifications
+    )
+
+
+@app.route("/contact", methods=["GET","POST"])
+@login_required
+def contact():
+
+    user = User.query.get(session["user_id"])
+
+    if request.method == "POST":
+
+        subject = request.form.get("subject")
+        message = request.form.get("message")
+
+        msg = ContactMessage(
+            user_id=user.id,
+            subject=subject,
+            message=message
+        )
+
+        db.session.add(msg)
+        db.session.commit()
+
+        flash("Message sent. Admin will reply soon.","success")
+
+        return redirect(url_for("contact"))
+
+    messages = ContactMessage.query.filter_by(user_id=user.id).order_by(ContactMessage.timestamp.desc()).all()
+
+    return render_template("contact.html", user=user, messages=messages)
 # ----------- Dashboard & Tasks -----------
 @app.route("/dashboard")
 @login_required
@@ -690,6 +763,58 @@ def admin_ban_affiliate():
     flash(f"{user.full_name} has been banned as affiliate.", "success")
     return redirect(url_for("admin_affiliate_management"))
 
+@app.route("/admin/contact_messages")
+@admin_required
+def admin_contact_messages():
+
+    messages = ContactMessage.query.order_by(ContactMessage.timestamp.desc()).all()
+
+    return render_template(
+        "admin_contact_messages.html",
+        messages=messages
+    )
+
+@app.route("/admin/reply_message/<int:message_id>", methods=["POST"])
+@admin_required
+def admin_reply_message(message_id):
+
+    msg = ContactMessage.query.get_or_404(message_id)
+
+    msg.admin_reply = request.form.get("reply")
+
+    db.session.commit()
+
+    return redirect(url_for("admin_contact_messages"))
+
+@app.route("/admin/send_message", methods=["GET","POST"])
+@admin_required
+def admin_send_message():
+
+    users = User.query.all()
+
+    if request.method == "POST":
+
+        user_id = request.form.get("user_id")
+        title = request.form.get("title")
+        message = request.form.get("message")
+
+        if not user_id or not message:
+            flash("User and message required.", "error")
+            return redirect(url_for("admin_send_message"))
+
+        notification = Notification(
+            user_id=user_id,
+            title=title,
+            message=message
+        )
+
+        db.session.add(notification)
+        db.session.commit()
+
+        flash("Message sent to user.", "success")
+        return redirect(url_for("admin_send_message"))
+
+    return render_template("admin_send_message.html", users=users)
 # ----------------- Affiliate Route -----------------
 @app.route("/affiliate")
 @login_required
@@ -836,7 +961,7 @@ def affiliate_complete():
         # Assign referral code if missing
         if not user.referral_code:
             count = User.query.filter_by(is_affiliate=True).count()
-            import uuid
+        import uuid
         
         user.referral_code = f"UCSLAA-{uuid.uuid4().hex[:6]}"
 

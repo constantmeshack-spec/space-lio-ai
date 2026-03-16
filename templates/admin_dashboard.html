@@ -67,6 +67,11 @@ img {
      style="display:block; margin:20px auto; width:120px; border-radius:50%;">
 </br>
 <div class="actions">
+    <a href="{{ url_for('admin_contact_messages') }}">view Messages</a>
+    <a href="{{ url_for('admin_send_message') }}">
+    <button>📩 send Messages</button>
+    </a>
+
     <a href="{{ url_for('add_task') }}">+ Add Task</a>
     <a href="{{ url_for('admin_dashboard') }}">Refresh Dashboard</a>
 </div>

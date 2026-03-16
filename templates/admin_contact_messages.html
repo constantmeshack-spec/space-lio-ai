@@ -1,0 +1,35 @@
+<h2>User Messages</h2>
+
+{% for msg in messages %}
+
+<div style="border:1px solid #ccc;padding:10px;margin-bottom:10px">
+
+<p><strong>User:</strong> {{ msg.user.full_name }}</p>
+
+<p><strong>Subject:</strong> {{ msg.subject }}</p>
+
+<p>{{ msg.message }}</p>
+
+{% if msg.admin_reply %}
+
+<p style="color:green">
+Admin Reply: {{ msg.admin_reply }}
+</p>
+
+{% else %}
+
+<form method="POST" action="/admin/reply_message/{{ msg.id }}">
+
+<textarea name="reply" required></textarea>
+
+<br><br>
+
+<button type="submit">Send Reply</button>
+
+</form>
+
+{% endif %}
+
+</div>
+
+{% endfor %}

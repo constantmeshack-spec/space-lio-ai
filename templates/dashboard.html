@@ -115,6 +115,14 @@ footer {
      class="logo" 
      style="display:block; margin:20px auto; width:120px; border-radius:50%;">
 <a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
+<a href="{{ url_for('notifications') }}">
+<button>🔔 Notifications</button>
+<a href="{{ url_for('notifications') }}">
+<button>
+🔔 Notifications ({{ user.notifications|selectattr("is_read","equalto",False)|list|length }})
+</button>
+</a>
+
 </br><br>
 
 <h1>Welcome, {{ user.full_name }}</h1>
@@ -145,6 +153,7 @@ footer {
 </div>
 
 <footer>
+     <a href="{{ url_for('contact') }}">CONTACT US</a> 
     © 2026 {{ APP_NAME }}. All rights reserved. <br>
     THE LIO
 </footer>

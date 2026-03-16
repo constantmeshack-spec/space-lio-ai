@@ -1,0 +1,30 @@
+<h2>Send Message To User</h2>
+
+<form method="POST">
+
+<label>Select User</label>
+<select name="user_id" required>
+
+{% for user in users %}
+<option value="{{ user.id }}">
+{{ user.full_name }} ({{ user.phone }})
+</option>
+{% endfor %}
+
+</select>
+
+<br><br>
+
+<label>Title</label>
+<input type="text" name="title">
+
+<br><br>
+
+<label>Message</label>
+<textarea name="message" required></textarea>
+
+<br><br>
+
+<button type="submit">Send Message</button>
+
+</form>

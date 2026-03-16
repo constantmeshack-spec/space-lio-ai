@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>About Us | {{ APP_NAME }}</title>
+
+<style>
+
+/* MAIN */
+
+body{
+background:#0b0018;
+color:white;
+font-family:Arial, sans-serif;
+margin:0;
+}
+
+/* NAVBAR */
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 40px;
+background:#12002b;
+border-bottom:1px solid #2de2e6;
+}
+
+.logo{
+font-size:22px;
+font-weight:bold;
+color:#7cf7ff;
+}
+
+nav a{
+text-decoration:none;
+color:white;
+margin-left:15px;
+padding:8px 16px;
+border-radius:6px;
+background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+}
+
+nav a:hover{
+opacity:0.8;
+}
+
+/* CONTENT */
+
+.container{
+max-width:900px;
+margin:60px auto;
+padding:40px;
+background:#140030;
+border-radius:10px;
+border:1px solid #2de2e6;
+}
+
+.container h1{
+color:#7cf7ff;
+text-align:center;
+margin-bottom:30px;
+}
+
+.container h2{
+color:#7cf7ff;
+margin-top:30px;
+}
+
+.container p{
+color:#d4d4ff;
+line-height:1.7;
+}
+
+/* BUTTON */
+
+.btn{
+display:inline-block;
+margin-top:30px;
+padding:12px 24px;
+border:none;
+border-radius:8px;
+text-decoration:none;
+color:white;
+background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+}
+
+.btn:hover{
+opacity:0.85;
+}
+
+/* FOOTER */
+
+footer{
+text-align:center;
+padding:20px;
+background:#12002b;
+margin-top:60px;
+border-top:1px solid #2de2e6;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">{{ APP_NAME }}</div>
+
+<nav>
+<a href="{{ url_for('index') }}">HOME</a>
+
+
+</header>
+
+<div class="container">
+
+<h1>About {{ APP_NAME }}</h1>
+
+<p>
+<strong>{{ APP_NAME }}</strong> is an online platform designed to help users earn money through simple tasks and affiliate marketing opportunities.
+Our mission is to create a secure and reliable system where individuals can generate income online while growing a strong digital community.
+</p>
+
+<h2>Our Mission</h2>
+
+<p>
+Our goal is to empower people by providing accessible earning opportunities through task completion and referral networks. We aim to make online earning simple, transparent, and rewarding.
+</p>
+
+<h2>What We Offer</h2>
+
+<p>
+Users on our platform can participate in various earning activities including:
+</p>
+
+<p>
+• Completing simple online tasks<br>
+• Participating in our affiliate referral program<br>
+• Receiving rewards and bonuses for approved submissions<br>
+• Requesting withdrawals after reaching the minimum payout threshold
+</p>
+
+<h2>Why Choose {{ APP_NAME }}</h2>
+
+<p>
+We focus on providing a secure and easy-to-use platform where users can confidently earn online. Our system includes user verification, task approval processes, and structured affiliate rewards to maintain fairness and trust.
+</p>
+
+<h2>Our Vision</h2>
+
+<p>
+We aim to build one of the most trusted online earning platforms by connecting users with opportunities to generate income through technology and digital collaboration.
+</p>
+
+<a href="{{ url_for('index') }}" class="btn">Back to Home</a>
+
+</div>
+
+<footer>
+
+<p>© 2026 {{ APP_NAME }} | All Rights Reserved</p>
+
+</footer>
+
+</body>
+</html>
