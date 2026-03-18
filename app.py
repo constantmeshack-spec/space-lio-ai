@@ -14,6 +14,13 @@ import mimetypes
 
 from dotenv import load_dotenv
 load_dotenv()
+import random
+import string
+
+def generate_unique_invitation_code(length=8):
+    """Generate a unique alphanumeric invitation code."""
+    letters_and_digits = string.ascii_uppercase + string.digits
+    return ''.join(random.choices(letters_and_digits, k=length))
 
 # ----------------- App Setup -----------------
 app = Flask(__name__)
