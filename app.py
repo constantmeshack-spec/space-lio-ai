@@ -46,7 +46,10 @@ migrate = Migrate(app, db)
 # ----------------- Uploads -----------------
 app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "uploads")
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+UPLOAD_FOLDER = 'static/uploads/profile_pics'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # ----------------- Serve Files -----------------
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
@@ -73,23 +76,29 @@ class User(db.Model):
     full_name = db.Column(db.String(150), nullable=False)
     phone = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    balance = db.Column(db.Float, default=0)  # User account balance
+    
+    balance = db.Column(db.Float, default=0.0)  # USD now
     verified = db.Column(db.Boolean, default=False)
     is_admin = db.Column(db.Boolean, default=False)
     verification_file = db.Column(db.String(255), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # ---------- Affiliate Fields ----------
-    is_affiliate = db.Column(db.Boolean, default=False)  # True if joined affiliate
-    referral_code = db.Column(db.String(50), unique=True, nullable=True)  # User’s unique referral code
-    earnings = db.Column(db.Float, default=0)  # Affiliate earnings, separate from balance
-    invited_by_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)  # Who invited them
+    email = db.Column(db.String(120), unique=True, nullable=True)
+    country = db.Column(db.String(100), nullable=True)
+    # --- New Invitation System ---
+    invitation_code = db.Column(db.String(50), unique=True, nullable=True)  # user’s own code
+    invited_by_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)  # who invited them
     invited_members = db.relationship(
         "User",
         backref=db.backref("inviter", remote_side=[id]),
         lazy=True
     )
+
+    # Keep affiliate fields separate
+    is_affiliate = db.Column(db.Boolean, default=False)
+    referral_code = db.Column(db.String(50), unique=True, nullable=True)
+    earnings = db.Column(db.Float, default=0)
     pending_checkout_id = db.Column(db.String(50), nullable=True)
+    profile_pic = db.Column(db.String(255), default='default_avatar.png')
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -179,6 +188,15 @@ class AdSettings(db.Model):
     daily_limit = db.Column(db.Integer, default=20)
     cooldown = db.Column(db.Integer, default=30)  # seconds between ads
 
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    type = db.Column(db.String(50))
+    amount = db.Column(db.Float)
+    status = db.Column(db.String(50))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='transactions')
 
 # Track user ad views
 class AdView(db.Model):
@@ -210,7 +228,9 @@ def admin_required(f):
 def get_admin_user():
     return User.query.filter_by(is_admin=True).first()
 import requests, base64, datetime, os
-
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # ----------------- Routes -----------------
 @app.route("/")
@@ -222,25 +242,39 @@ def index():
     return render_template("index.html", user=user)
 
 # ----------- Register -----------
-@app.route("/register", methods=["GET","POST"])
+from flask import request, flash, redirect, url_for
+
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method=="POST":
-        full_name = request.form.get("full_name")
-        phone = request.form.get("phone")
-        password = request.form.get("password")
+    code_from_url = request.args.get('code')  # invitation link code
 
-        if User.query.filter_by(phone=phone).first():
-            flash("Phone already registered.", "error")
-            return redirect(url_for("register"))
+    if request.method == 'POST':
+        full_name = request.form['full_name']
+        phone = request.form['phone']
+        password = request.form['password']
+        invitation_code = request.form.get('invitation_code') or code_from_url
 
-        hashed_pw = generate_password_hash(password)
-        user = User(full_name=full_name, phone=phone, password=hashed_pw)
-        db.session.add(user)
+        # Create new user
+        new_user = User(
+            full_name=full_name,
+            phone=phone,
+            password=generate_password_hash(password),
+            invitation_code=generate_unique_invitation_code()
+        )
+        db.session.add(new_user)
         db.session.commit()
-        session["user_id"] = user.id
-        return redirect(url_for("verify_account"))
 
-    return render_template("register.html")
+        # Check if invitation_code exists
+        if invitation_code:
+            inviter = User.query.filter_by(invitation_code=invitation_code).first()
+            if inviter:
+                inviter.balance += 0.5  # Add $0.5 to inviter
+                db.session.commit()
+        
+        flash("Account created successfully!")
+        return redirect(url_for('login'))
+
+    return render_template('register.html', code=code_from_url)
 
 # ----------- Login -----------
 @app.route("/login", methods=["GET", "POST"])
@@ -387,7 +421,8 @@ def cash_dashboard():
 @login_required
 def dashboard():
     user = User.query.get(session["user_id"])
-    return render_template("dashboard.html", user=user)
+    invitation_link = url_for('register', code=user.invitation_code, _external=True)
+    return render_template("dashboard.html", user=user, invitation_link=invitation_link)
 
 @app.route("/tasks")
 @login_required
@@ -426,13 +461,42 @@ def withdraw_dashboard():
     user = User.query.get(session["user_id"])
     return render_template("withdraw_dashboard.html", user=user)
 
+import os
+from werkzeug.utils import secure_filename
 
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    user = User.query.get(session['user_id'])
+
+    if request.method == 'POST':
+        file = request.files.get('profile_pic')
+
+        if file and file.filename != '' and allowed_file(file.filename):
+            # delete old pic (if exists and not default)
+            if user.profile_pic and user.profile_pic != 'default.png':
+                old_path = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_pic)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+
+            # save new pic
+            filename = secure_filename(f"user_{user.id}.{file.filename.rsplit('.',1)[1].lower()}")
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            user.profile_pic = filename
+            db.session.commit()
+            flash("Profile picture updated!")
+
+        return redirect(url_for('profile'))
+
+    total_invited = User.query.filter_by(invited_by_id=user.id).count()
+    return render_template('profile.html', user=user, total_invited=total_invited)
 # Handle Withdraw Submit
 @app.route("/user_withdraw", methods=["POST"])
 @login_required
 def user_withdraw():
     user = User.query.get(session["user_id"])
-    MIN_WITHDRAW = 500
+    MIN_WITHDRAW = 5
 
     try:
         amount = float(request.form.get("withdraw_amount", 0))
@@ -441,7 +505,7 @@ def user_withdraw():
         return redirect(url_for("withdraw_dashboard"))
 
     if amount < MIN_WITHDRAW:
-        flash(f"Minimum withdrawal is KES {MIN_WITHDRAW}.", "error")
+        flash(f"Minimum withdrawal is USD {MIN_WITHDRAW}.", "error")
         return redirect(url_for("withdraw_dashboard"))
 
     if amount > user.balance:
@@ -482,6 +546,22 @@ def user_withdraw():
             paybill=paybill,
             account_no=account_no
         )
+        
+    elif method == "paypal":
+        paypal_email = request.form.get("paypal_email")
+        if not paypal_email:
+            flash("Please provide your PayPal email.", "error")
+            return redirect(url_for("withdraw_dashboard"))
+
+        transaction = AffiliateTransaction(
+            user_id=user.id,
+            type="balance_withdraw",
+            amount=amount,
+            status="pending",
+            withdraw_method="paypal",
+            paypal_email=paypal_email
+        )
+
     else:
         flash("Invalid withdrawal method.", "error")
         return redirect(url_for("withdraw_dashboard"))
@@ -489,7 +569,7 @@ def user_withdraw():
     db.session.add(transaction)
     db.session.commit()
 
-    flash(f"Withdrawal request for KES {amount} submitted successfully!", "success")
+    flash(f"Withdrawal request for USD {amount} submitted successfully!", "success")
     # ✅ redirect to status page
     return redirect(url_for("view_withdraw_status"))
 
@@ -523,6 +603,14 @@ def admin_dashboard():
         affiliate_transactions=affiliate_transactions
     )
 
+@app.route('/admin/transactions')
+def admin_transactions():
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+
+    transactions = AffiliateTransaction.query.order_by(AffiliateTransaction.timestamp.desc()).all()
+
+    return render_template('transactions.html', transactions=transactions)
 # ----------- Admin Verify/Reject Users -----------
 @app.route("/admin/verify_user/<int:user_id>")
 @admin_required
@@ -903,6 +991,23 @@ def admin_send_message():
         return redirect(url_for("admin_send_message"))
 
     return render_template("admin_send_message.html", users=users)
+
+@app.route('/admin/clear-transactions', methods=['POST'])
+def clear_transactions():
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+
+    try:
+        # Delete all affiliate transactions
+        AffiliateTransaction.query.delete()
+        db.session.commit()
+        flash("All affiliate transactions have been deleted.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting affiliate transactions: {str(e)}", "error")
+        print("Error clearing affiliate transactions:", e)
+
+    return redirect(url_for('admin_transactions'))
 # ----------------- Affiliate Route -----------------
 @app.route("/affiliate")
 @login_required

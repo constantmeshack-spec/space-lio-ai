@@ -3,7 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8">
-<title>{{ APP_NAME }} | Profile</title>
+<title>{{ APP_NAME }} | Dashboard</title>
 
 <style>
 /* --- GENERAL --- */
@@ -16,22 +16,30 @@ body {
 }
 
 /* --- HOME BUTTON FIXED TOP --- */
-.btn-home-top {
+.btn-home-top, .btn-profile-top {
     position: fixed;
     top: 20px;
-    right: 20px;
     z-index: 999;
     color: white;
     text-decoration: none;
     background: linear-gradient(45deg, #2de2e6, #7b2ff7);
-    padding: 10px 20px;
-    border-radius: 8px;
     cursor: pointer;
     transition: opacity 0.3s, box-shadow 0.3s;
 }
-.btn-home-top:hover {
-    opacity: 0.85;
-    box-shadow: 0 0 12px #2de2e6, 0 0 18px #7b2ff7;
+.btn-home-top {
+    right: 100px;
+    padding: 10px 20px;
+    border-radius: 8px;
+}
+.btn-profile-top {
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
 }
 
 /* --- HEADINGS --- */
@@ -74,24 +82,11 @@ h2 {
     box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
 }
 
-/* --- BONUS TEXT --- */
-.bonus {
-    color: gold;
-}
-
 /* --- RESPONSIVE --- */
 @media (max-width: 600px) {
-    body {
-        font-size: 14px;
-    }
-    .card {
-        padding: 15px;
-        margin: 15px;
-    }
-    .btn {
-        padding: 8px 12px;
-        font-size: 14px;
-    }
+    body { font-size: 14px; }
+    .card { padding: 15px; margin: 15px; }
+    .btn { padding: 8px 12px; font-size: 14px; }
 }
 
 /* --- FOOTER --- */
@@ -108,52 +103,40 @@ footer {
 
 <body>
 
-<!-- Home Button Always on Top -->
-<!-- Logo at the top center -->
-<img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" 
-     alt="{{ APP_NAME }} Logo" 
-     class="logo" 
-     style="display:block; margin:20px auto; width:120px; border-radius:50%;">
+<!-- Home & Profile Buttons -->
 <a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
-<a href="{{ url_for('notifications') }}">🔔({{ user.notifications|selectattr("is_read","equalto",False)|list|length }})
-</button>
-</a>
+<a href="{{ url_for('profile') }}" class="btn-profile-top">👤</a>
 
 </br><br>
 
 <h1>Welcome, {{ user.full_name }}</h1>
 
 <div class="card">
-    <h2>User Profile</h2>
-    <p><strong>Full Name:</strong> {{ user.full_name }}</p>
-    <p><strong>Phone:</strong> {{ user.phone }}</p>
-    <p><strong>Verified:</strong> {{ 'Yes' if user.verified else 'No' }}</p>
-</div>
-
-<div class="card">
     <h2>Accounts</h2>
-    <p><strong>Balance:</strong> KES {{ user.balance }}</p>
+    <p><strong>Balance:</strong> ${{ user.balance }}</p>
     {% if user.is_affiliate %}
     <p class="bonus"><strong>Affiliate Bonus Credit:</strong> Included in balance</p>
     {% endif %}
-    <p>
-        <a class="btn" href="{{ url_for('withdraw_dashboard') }}">Withdraw Balance</a>
-    </p>
+    <p><a class="btn" href="{{ url_for('withdraw_dashboard') }}">Withdraw Balance</a></p>
+</div>
+
+<div class="card">
+    <h2>Invitation</h2>
+    <p>Share your invitation link or code to earn $0.5 per successful invite:</p>
+    <p><strong>Code:</strong> {{ user.invitation_code }}</p>
+    <p><strong>Link:</strong> <a class="btn" href="{{ url_for('register') }}?code={{ user.invitation_code }}">{{ url_for('register', _external=True) }}?code={{ user.invitation_code }}</a></p>
 </div>
 
 <div class="card">
     <h2>Quick Links</h2>
     <p><a class="btn" href="{{ url_for('tasks') }}">Go to Tasks</a></p>
     <p><a class="btn" href="{{ url_for('affiliate') }}">Affiliate Programme</a></p>
-    <br><br>
-<a href="{{ url_for('cash_dashboard') }}">
-<button>💰 CASH Dashboard</button>
-</a>
+    <p><a class="btn" href="{{ url_for('cash_dashboard') }}">💰 CASH Dashboard</a></p>
     <p><a class="btn" href="{{ url_for('logout') }}">Logout</a></p>
 </div>
 
 <footer>
-     <a href="{{ url_for('contact') }}">CONTACT US</a> 
+    <a href="{{ url_for('contact') }}">CONTACT US</a> 
     © 2026 {{ APP_NAME }}. All rights reserved. <br>
     THE LIO
 </footer>

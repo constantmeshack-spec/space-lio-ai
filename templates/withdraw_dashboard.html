@@ -128,16 +128,17 @@ function toggleFields() {
 
 <div class="card">
 <form action="{{ url_for('user_withdraw') }}" method="POST">
-    <p><strong>Current Balance: KES {{ user.balance }}</strong></p>
+    <p><strong>Current Balance: $ {{ user.balance }}</strong></p>
 
     <label for="withdraw_amount">Amount to Withdraw:</label>
-    <input type="number" name="withdraw_amount" id="withdraw_amount" max="{{ user.balance }}" min="500" required>
+    <input type="number" name="withdraw_amount" id="withdraw_amount" max="{{ user.balance }}" min="5" step="5" required>
 
     <label for="method">Select Method:</label>
     <select name="method" id="method" onchange="toggleFields()" required>
         <option value="">--Select--</option>
         <option value="mpesa">MPESA</option>
         <option value="bank">Bank</option>
+        <option value="paypal">PayPal</option>
     </select>
 
     <div id="mpesa_fields" style="display:none; margin-top:10px;">
@@ -154,6 +155,11 @@ function toggleFields() {
 
         <label for="bank_account">Account Number:</label>
         <input type="text" name="bank_account" id="bank_account" placeholder="Account number">
+    </div>
+
+    <div id="paypal_fields" style="display:none; margin-top:10px;">
+        <label for="paypal_email">PayPal Email:</label>
+        <input type="email" name="paypal_email" id="paypal_email" placeholder="your_email@example.com">
     </div>
 
     <button type="submit">Submit Withdraw</button>

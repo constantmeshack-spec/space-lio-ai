@@ -1,0 +1,98 @@
+<div class="container">
+    <h2>User Profile</h2>
+       <a href="{{ url_for('index') }}" class="btn-home-top">Home</a>
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='uploads/profile_pics/' + (user.profile_pic if user.profile_pic else 'default.png')) }}"
+             alt="Profile Picture"
+             style="width:120px; height:120px; border-radius:50%; display:block; margin:auto; border:2px solid #2de2e6;">
+        <form method="POST" enctype="multipart/form-data" class="mt-3">
+            <input type="file" name="profile_pic" accept="image/*" class="form-control mb-2">
+            <button type="submit" class="btn-register">Change Picture</button>
+        </form>
+
+        <p><strong>Full Name:</strong> {{ user.full_name }}</p>
+        <p><strong>Phone:</strong> {{ user.phone }}</p>
+        <p><strong>ID Number:</strong> {{ user.id_number }}</p>
+        <p><strong>Country:</strong> {{ user.country }}</p>
+        <p><strong>Email:</strong> {{ user.email or "Not Provided" }}</p>
+        <p><strong>Total Invited Users:</strong> {{ user.invited_count }}</p>
+    </div>
+</div>
+
+<style>
+/* --- GENERAL --- */
+body, .container {
+    background: #0b0018;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+/* --- CONTAINER --- */
+.container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+}
+
+/* --- CARDS --- */
+.card {
+    background: #140030;
+    border: 1px solid #2de2e6;
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 20px;
+    box-shadow: 0 0 20px rgba(45, 226, 230, 0.3);
+    color: #d4d4ff;
+    text-align: center;
+}
+
+/* --- INPUTS --- */
+.form-control {
+    background: #12002b;
+    color: white;
+    border: 1px solid #2de2e6;
+    border-radius: 8px;
+    padding: 10px;
+}
+.form-control:focus {
+    background: #140030;
+    border-color: #7b2ff7;
+    outline: none;
+    box-shadow: 0 0 8px #2de2e6, 0 0 12px #7b2ff7;
+}
+
+/* --- BUTTONS --- */
+.btn-register {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: linear-gradient(45deg, #2de2e6, #7b2ff7);
+    transition: opacity 0.3s;
+}
+.btn-register:hover {
+    opacity: 0.85;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+        margin: 20px 15px;
+    }
+
+    .form-control {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .btn-register {
+        font-size: 14px;
+        padding: 10px;
+    }
+}
+</style>
