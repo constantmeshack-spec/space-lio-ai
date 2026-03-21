@@ -109,6 +109,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=True)
     country = db.Column(db.String(100), nullable=True)
     # --- New Invitation System ---
+    invited_count = db.Column(db.Integer, default=0)  # how many people this user has invited
     invitation_code = db.Column(db.String(50), unique=True, nullable=True)  # user’s own code
     invited_by_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)  # who invited them
     invited_members = db.relationship(
@@ -977,6 +978,7 @@ def admin_contact_messages():
         messages=messages
     )
 
+
 @app.route("/admin/reply_message/<int:message_id>", methods=["POST"])
 @admin_required
 def admin_reply_message(message_id):
@@ -1019,7 +1021,8 @@ def admin_send_message():
 
     return render_template("admin_send_message.html", users=users)
 
-@app.route('/admin/clear-transactions', methods=['POST'])
+@app.route("/admin/clear_transactions", methods=["POST"])
+@admin_required
 def clear_transactions():
     if not session.get('is_admin'):
         return redirect(url_for('login'))
