@@ -8,17 +8,28 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from datetime import datetime
 import os
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
+
 
 from flask_sqlalchemy import SQLAlchemy
 import mimetypes
-
+import asyncio
+import re
 from dotenv import load_dotenv
 load_dotenv()
 import random
 import string
-
 def generate_unique_invitation_code(length=8):
-    """Generate a unique alphanumeric invitation code."""
+    """
+    Generate a unique alphanumeric invitation code.
+
+    Args:
+        length (int): Length of the invitation code. Default is 8.
+
+    Returns:
+        str: Randomly generated alphanumeric code.
+    """
     letters_and_digits = string.ascii_uppercase + string.digits
     return ''.join(random.choices(letters_and_digits, k=length))
 
@@ -32,8 +43,13 @@ app.config["APP_NAME"] = "SPACE LIO AI"
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
+    # Fix old postgres:// bug
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+    # ✅ Add this line (IMPORTANT FIX)
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
+
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///local.db"
@@ -83,6 +99,7 @@ class User(db.Model):
     full_name = db.Column(db.String(150), nullable=False)
     phone = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    id_number = db.Column(db.String(50), nullable=True)
     
     balance = db.Column(db.Float, default=0.0)  # USD now
     verified = db.Column(db.Boolean, default=False)
@@ -266,6 +283,9 @@ def register():
             full_name=full_name,
             phone=phone,
             password=generate_password_hash(password),
+            country=request.form.get("country"),
+            email=request.form.get("email"),
+            id_number=request.form.get("id_number"),
             invitation_code=generate_unique_invitation_code()
         )
         db.session.add(new_user)
