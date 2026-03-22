@@ -163,7 +163,7 @@ footer {
 
 <div class="container">
     <h2>Login to {{ APP_NAME }}</h2>
-    <h5>Use your phone number to login</h5>
+    <h5>Use your phone number or email to login</h5>
 
     {% with messages = get_flashed_messages() %}
       {% if messages %}
@@ -175,14 +175,14 @@ footer {
 
     <form method="POST">
         <div class="mb-3">
-            <label for="phone">Phone Number</label>
+            <label for="phone">Phone Number or email</label>
             <input type="text" class="form-control" id="phone" name="phone" required>
         </div>
         <div class="mb-3">
             <label for="password">Password (or leave blank for OTP)</label>
             <input type="password" class="form-control" id="password" name="password">
         </div>
-
+       
         <button type="submit" class="btn-login">Login</button>
         <a href="{{ url_for('register') }}" class="btn-link">Create account</a>
     </form>

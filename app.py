@@ -278,16 +278,18 @@ def register():
         phone = request.form['phone']
         password = request.form['password']
         invitation_code = request.form.get('invitation_code') or code_from_url
+        email = request.form.get("email")
         
         # Check if phone already exists
         existing_user = User.query.filter_by(phone=phone).first()
         if existing_user:
             flash("Phone number already exists. Please use another one.", "error")
             return redirect(url_for('register'))
-        if email:
-            if User.query.filter_by(email=email).first():
-                flash("Email already exists", "error")
-                return redirect(url_for('register'))
+        #check email:
+        if email and User.query.filter_by(email=email).first():
+            flash("Email already exists", "error")
+            return redirect(url_for('register'))
+
         # Create new user
         new_user = User(
             full_name=full_name,
@@ -306,12 +308,14 @@ def register():
             inviter = User.query.filter_by(invitation_code=invitation_code).first()
             if inviter:
                 inviter.balance += 0.5  # Add $0.5 to inviter
-                db.session.commit()
+                if inviter.invited_count is None:
+                    inviter.invited_count = 0
                 new_user.invited_by_id = inviter.id
                 inviter.invited_count += 1
+                db.session.commit()
         
         flash("Account created successfully!")
-        return redirect(url_for('verify_account'))
+        return redirect(url_for("verify_account"))
 
     return render_template('register.html', code=code_from_url)
 
@@ -321,8 +325,12 @@ def login():
     if request.method == "POST":
         phone = request.form.get("phone")
         password = request.form.get("password")
+        email = request.form.get("email")
 
         user = User.query.filter_by(phone=phone).first()
+        if not user:
+            user = User.query.filter_by(email=email).first()
+
         if not user or not check_password_hash(user.password, password):
             flash("Invalid login details", "danger")
             return redirect(url_for("login"))
