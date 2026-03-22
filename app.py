@@ -168,7 +168,7 @@ class AffiliateTransaction(db.Model):
     bank_name = db.Column(db.String(50), nullable=True)
     paybill = db.Column(db.String(50), nullable=True)
     account_no = db.Column(db.String(50), nullable=True)
-
+    paypal_email = db.Column(db.String(120), nullable=True)
     user = db.relationship("User", backref="affiliate_transactions")
 
 class AffiliatePayment(db.Model):
@@ -278,7 +278,16 @@ def register():
         phone = request.form['phone']
         password = request.form['password']
         invitation_code = request.form.get('invitation_code') or code_from_url
-
+        
+        # Check if phone already exists
+        existing_user = User.query.filter_by(phone=phone).first()
+        if existing_user:
+            flash("Phone number already exists. Please use another one.", "error")
+            return redirect(url_for('register'))
+        if email:
+            if User.query.filter_by(email=email).first():
+                flash("Email already exists", "error")
+                return redirect(url_for('register'))
         # Create new user
         new_user = User(
             full_name=full_name,
@@ -298,9 +307,11 @@ def register():
             if inviter:
                 inviter.balance += 0.5  # Add $0.5 to inviter
                 db.session.commit()
+                new_user.invited_by_id = inviter.id
+                inviter.invited_count += 1
         
         flash("Account created successfully!")
-        return redirect(url_for('login'))
+        return redirect(url_for('verify_account'))
 
     return render_template('register.html', code=code_from_url)
 
@@ -325,7 +336,7 @@ def login():
         if not user.verified:
             return redirect(url_for("verify_account"))
 
-        return redirect(url_for("index"))
+        return redirect(url_for("dashboard"))
 
     return render_template("login.html")
 
@@ -830,14 +841,14 @@ def reward_ad():
     today = datetime.utcnow().date()
 
     views_today = AdView.query.filter(
-        AdView.user_id == current_user.id,
+        AdView.user_id == session['user_id'],
         db.func.date(AdView.timestamp) == today
     ).count()
 
     if views_today >= settings.daily_limit:
         return {"status": "limit"}
 
-    view = AdView(user_id=current_user.id)
+    view = AdView(user_id=session['user_id'])
     db.session.add(view)
 
     current_user.balance += settings.reward
@@ -1295,7 +1306,6 @@ def affiliate_withdrawals():
 
     return render_template("affiliate_withdrawals.html", withdrawals=withdrawals)
 
-import hmac, hashlib, json
 from flask import request
 
 import hmac
