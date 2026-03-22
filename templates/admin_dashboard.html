@@ -194,6 +194,7 @@ img {
     <th>Phone</th>
     <th>Verification</th>
     <th>View File</th>
+    <th>Email</th>
     <th>Actions</th>
 </tr>
 </thead>
@@ -213,12 +214,14 @@ img {
         -
         {% endif %}
     </td>
+    <td>{{ u.email if u.email else "-" }}</td>
     <td>
         {% if u.verification_file %}
             <a href="{{ url_for('verify_user', user_id=u.id) }}">Approve</a>
             <a href="{{ url_for('reject_user', user_id=u.id) }}">Reject</a>
         {% else %}
-            Waiting
+        <a href="{{ url_for('verify_user', user_id=u.id) }}">Approve</a>
+        <a href="{{ url_for('reject_user', user_id=u.id) }}">Reject</a>
         {% endif %}
     </td>
 </tr>
@@ -241,7 +244,7 @@ img {
     <th>Affiliate?</th>
     <th>Referral Code</th>
     <th>Earnings</th>
-    <th>Admin</th>
+    <th>Email</th>
     <th>Action</th>
 </tr>
 </thead>
@@ -257,7 +260,7 @@ img {
     <td>{{ "Yes" if u.is_affiliate else "No" }}</td>
     <td>{{ u.referral_code if u.referral_code else "-" }}</td>
     <td>{{ u.earnings }}</td>
-    <td>{{ "Yes" if u.is_admin else "No" }}</td>
+    <td>{{ u.email if u.email else "-" }}</td>
     <td>
         {% if u.is_affiliate %}
         <form method="POST"
@@ -266,7 +269,11 @@ img {
               style="display:inline;">
             <button type="submit">Reset Affiliate</button>
         {% else %}
-        -
+        <form method="POST"
+              action="{{ url_for('ban_user', user_id=u.id) }}"
+              onsubmit="return confirm('Are you sure you want to Ban this user?');"
+              style="display:inline;">
+            <button type="submit">Ban User</button>
         {% endif %}
     </td>
 </tr>

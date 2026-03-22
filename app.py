@@ -108,6 +108,8 @@ class User(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     email = db.Column(db.String(120), unique=True, nullable=True)
     country = db.Column(db.String(100), nullable=True)
+    is_banned = db.Column(db.Boolean, default=False)  # New field to track banned users
+
     # --- New Invitation System ---
     invited_count = db.Column(db.Integer, default=0)  # how many people this user has invited
     invitation_code = db.Column(db.String(50), unique=True, nullable=True)  # user’s own code
@@ -337,6 +339,11 @@ def login():
 
         session["user_id"] = user.id
         session["is_admin"] = user.is_admin
+        session["is_banned"] = user.is_banned
+
+        if user.is_banned:
+            flash("Your account has been banned.", "error")
+            return redirect(url_for("login"))
 
         if user.is_admin:
             return redirect(url_for("admin_dashboard"))
@@ -967,24 +974,24 @@ def admin_reward_affiliate():
     return redirect(url_for("admin_affiliate_management"))
 
 # Ban/Deregister route
-@app.route("/admin/ban_affiliate", methods=["POST"])
+@app.route("/admin/ban_user/<int:user_id>", methods=["POST"])
 @admin_required
-def admin_ban_affiliate():
-    user_id = request.form.get("user_id")
-    user = User.query.get(user_id)
-    if not user or not user.is_affiliate:
-        flash("User not found or not an affiliate.", "error")
-        return redirect(url_for("admin_affiliate_management"))
+def ban_user(user_id):
+    user = User.query.get_or_404(user_id)
 
-    # Deregister user as affiliate
-    user.is_affiliate = False
+    # ✅ Mark user as banned
+    user.is_banned = True
+
+    # Optional: reset stuff
+    user.verified = False
     user.earnings = 0
-    user.referral_code = None
+    user.invitation_code = None
     user.invited_by_id = None
 
     db.session.commit()
-    flash(f"{user.full_name} has been banned as affiliate.", "success")
-    return redirect(url_for("admin_affiliate_management"))
+
+    flash(f"{user.full_name} has been banned.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/contact_messages")
 @admin_required
