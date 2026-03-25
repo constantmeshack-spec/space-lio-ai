@@ -47,7 +47,7 @@ label {
 .form-control {
     background: #12002b; /* dark purple field */
     color: white;
-    border: 1px solid #2de2e6; /* cyan border */
+    border: 1px solid lightskyblue; /* cyan border */
     border-radius: 8px;
     padding: 10px;
 }
@@ -148,37 +148,38 @@ footer {
 
     <form method="POST">
         <div class="mb-3">
-            <label for="full_name">Full Name</label>
+            <label for="full_name">Full Name</label> <br>
             <input type="text" class="form-control" id="full_name" name="full_name" required>
         </div>
         <div class="mb-3">
-            <label for="phone">Phone Number</label>
-            <input type="text" class="form-control" id="phone" name="phone" required>
+            <label for="phone">Phone Number</label> <br>
+            <input type="text" class="form-control" id="phone" pattern="0[0-9]{9}" required>   
         </div>
         <div class="mb-3">
-            <label for="email">Email</label>
+            <label for="email">Email</label> <br>
             <input type="email" class="form-control" id="email" name="email">
         </div>
-        <div class="mb-3">
-            <label for="id_number">ID Number</label>
-            <input type="text" class="form-control" id="id_number" name="id_number" required>
+        <div class="mb-3">6
+            <label for="id_number">ID Number</label> <br>
+            <input type="text" class="form-control" id="id_number" name="id_number" pattern="[0-9]+" required>
         </div>
         <div class="mb-3">
-            <label for="country">Country</label>
+            <label for="country">Country</label> <br>
             <input type="text" class="form-control" id="country" name="country" required>
         </div>
         <div class="mb-3">
-            <label for="password">Password</label>
+            <label for="password">Password</label> <br>
             <input type="password" class="form-control" id="password" name="password" required>
         </div>
         <div class="mb-3">
-            <label for="confirm_password">Confirm Password</label>
+            <label for="confirm_password">Confirm Password</label> <br>
             <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
         </div>
         <div class="mb-3">
-            <label for="invitation_code">Invitation Code (Optional)</label>
+            <label for="invitation_code">Invitation Code (Optional)</label> <br>
             <input type="text" class="form-control" id="invitation_code" name="invitation_code">
         </div>
+        <br>
 
         <button type="submit" class="btn-register">Register</button>
         <a href="{{ url_for('login') }}" class="btn-link">Already have an account? Login</a>
