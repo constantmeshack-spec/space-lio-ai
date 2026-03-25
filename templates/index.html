@@ -1,265 +1,272 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>{{ APP_NAME }} | Earn Online</title>
-
 <meta name="description" content="Earn money online with tasks and affiliate marketing on SPACE LIO AI.">
 <meta name="keywords" content="earn online, affiliate marketing, tasks platform, online income">
 <meta name="author" content="SPACE LIO AI">
-
 <link rel="icon" href="{{ url_for('static', filename='space_lio_logo.jpeg') }}">
 
 <style>
-
 /* MAIN */
-
 body{
-background:#0b0018;
-color:white;
-font-family:Arial, sans-serif;
-margin:0;
+    background:#0b0018;
+    color:white;
+    font-family:Arial, sans-serif;
+    margin:0;
 }
 
 /* NAVBAR */
-
 header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:10px 30px;
-background:#12002b;
-border-bottom:1px solid #2de2e6;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 30px;
+    background:#12002b;
+    border-bottom:1px solid #2de2e6;
+    position:relative;
 }
 
 .logo{
-font: size 5px;
-font-weight:bold;
-color:#7cf7ff;
+    font-weight:bold;
+    font-size:20px;
+    color:#7cf7ff;
 }
 
-nav a{
-text-decoration:none;
-color:white;
-margin: left 5px;
-padding:8px 11px;
-border-radius:6px;
-background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+/* Hamburger */
+.menu-icon{
+    font-size:28px;
+    cursor:pointer;
+    color:#7cf7ff;
 }
 
-nav a:hover{
-opacity:0.8;
+/* Dropdown menu */
+.menu{
+    display:none;
+    position:absolute;
+    top:60px;
+    right:20px;
+    background:#140030;
+    border:1px solid #2de2e6;
+    border-radius:8px;
+    width:200px;
+    z-index:1000;
+}
+
+/* Menu links */
+.menu a{
+    display:block;
+    padding:12px;
+    color:white;
+    text-decoration:none;
+    border-bottom:1px solid #2de2e6;
+}
+
+.menu a:hover{
+    background:#1f0045;
 }
 
 /* HERO */
-
 .hero{
-text-align:center;
-padding:80px 20px;
+    text-align:center;
+    padding:80px 20px;
 }
 
 .hero img{
-width:260px;
-margin-bottom:20px;
+    width:260px;
+    margin-bottom:20px;
 }
 
 .hero h1{
-font-size:42px;
-color:#7cf7ff;
-margin-bottom:10px;
+    font-size:42px;
+    color:#7cf7ff;
+    margin-bottom:10px;
 }
 
 .hero p{
-max-width:600px;
-margin:auto;
-margin-bottom:30px;
-line-height:1.6;
-color:#d4d4ff;
+    max-width:600px;
+    margin:auto;
+    margin-bottom:30px;
+    line-height:1.6;
+    color:#d4d4ff;
 }
 
 .hero button{
-padding:10px 18px;
-font-size:30px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-color:white;
-background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+    padding:10px 18px;
+    font-size:30px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    color:white;
+    background:linear-gradient(45deg,#2de2e6,#7b2ff7);
 }
 
 .hero button:hover{
-opacity:0.85;
+    opacity:0.85;
 }
 
 /* FEATURES */
-
 .features{
-padding:70px 40px;
+    padding:70px 40px;
 }
 
 .features h2{
-text-align:center;
-color:#7cf7ff;
-margin-bottom:40px;
+    text-align:center;
+    color:#7cf7ff;
+    margin-bottom:40px;
 }
 
 .grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:20px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
 }
 
 .box{
-background:#140030;
-padding:25px;
-border-radius:10px;
-border:1px solid #2de2e6;
-text-align:center;
+    background:#140030;
+    padding:25px;
+    border-radius:10px;
+    border:1px solid #2de2e6;
+    text-align:center;
 }
 
 .box h3{
-color:#7cf7ff;
-margin-bottom:10px;
+    color:#7cf7ff;
+    margin-bottom:10px;
 }
 
 /* HOW IT WORKS */
-
 .how{
-padding:70px 40px;
-background:#12002b;
-border-top:1px solid #2de2e6;
-border-bottom:1px solid #2de2e6;
+    padding:70px 40px;
+    background:#12002b;
+    border-top:1px solid #2de2e6;
+    border-bottom:1px solid #2de2e6;
 }
 
 .how h2{
-text-align:center;
-color:#7cf7ff;
-margin-bottom:30px;
+    text-align:center;
+    color:#7cf7ff;
+    margin-bottom:30px;
 }
 
 .steps{
-max-width:700px;
-margin:auto;
-line-height:1.8;
-color:#d4d4ff;
+    max-width:700px;
+    margin:auto;
+    line-height:1.8;
+    color:#d4d4ff;
 }
 
 /* FOOTER */
-
 footer{
-text-align:center;
-padding:20px;
-background:#12002b;
-margin-top:40px;
-border-top:1px solid #2de2e6;
+    text-align:center;
+    padding:20px;
+    background:#12002b;
+    margin-top:40px;
+    border-top:1px solid #2de2e6;
 }
 
-</style>
+footer nav a{
+    color:white;
+    margin:0 5px;
+    text-decoration:none;
+}
 
+footer nav a:hover{
+    opacity:0.8;
+}
+</style>
 </head>
 
 <body>
 
 <header>
-<div class="logo">{{ APP_NAME }}</div>
-<nav>
-<a href="{{ url_for('profile') }}">👤</a>
-</header>
-</div>
-<br><br>
-<nav>
-    <a href="{{ url_for('notifications') }}">🔔</a>
-    <a href="{{ url_for('tasks') }}">TASKS</a>
-    <a href="{{ url_for('affiliate') }}">AFFILIATE</a>
+    <div class="logo">{{ APP_NAME }}</div>
+    <a href="{{ url_for('notifications') }}" style="position:relative;">
+     <button>🔔 Notifications</button>
+    <span id="notif-count" style="
+        display:none;
+        position:absolute;
+        top:-8px;
+        right:-8px;
+        background:red;
+        color:white;
+        font-size:12px;
+        padding:2px 6px;
+        border-radius:50%;
+    ">0</span>
+    </a>
 
-</nav>
+    <!-- Hamburger -->
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
 
-
+    <!-- Dropdown Menu -->
+    <div id="menu" class="menu">
+        <a href="{{ url_for('profile') }}">👤 Profile</a>
+        <!-- Example inside your menu -->
+       <a href="{{ url_for('tasks') }}">Tasks</a>
+        <a href="{{ url_for('affiliate') }}">Affiliate</a>
+        {% if user %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('register') }}">Register</a>
+        {% endif %}
+    </div>
 </header>
 
 <section class="hero">
-
-<img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" alt="SPACE LIO AI Logo">
-
-<h1>EMPLOYER, WORKER,ADVERTISER? WELCOME TO {{ APP_NAME }}</h1>
-
-<p>
-Complete tasks, grow your affiliate network, Monetize you skills, and more projects.
-</p>
-
-{% if user %}
-<a href="{{ url_for('dashboard') }}">
-    <button>Go to Dashboard</button>
-</a>
-{% else %}
-<a href="{{ url_for('register') }}">
-    <button>Start Earning</button>
-</a>
-{% endif %}
-<br><br>
-<a href="{{ url_for('cash_dashboard') }}">
-<button>💰 CASH Dashboard</button>
-</a>
-
+    <img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" alt="SPACE LIO AI Logo">
+    <h1>EMPLOYER, WORKER, ADVERTISER? WELCOME TO {{ APP_NAME }}</h1>
+    <p>
+        Complete tasks, grow your affiliate network, Monetize your skills, and more projects.
+    </p>
+    {% if user %}
+    <a href="{{ url_for('dashboard') }}"><button>Go to Dashboard</button></a>
+    {% else %}
+    <a href="{{ url_for('register') }}"><button>Start Earning</button></a>
+    {% endif %}
+    <br><br>
+    <a href="{{ url_for('cash_dashboard') }}"><button>💰 CASH Dashboard</button></a>
 </section>
 
 <section class="features">
-
 <h2>Platform Features</h2>
-
 <div class="grid">
-
-<div class="box">
-<h3>💰 Earn From Tasks</h3>
-<p>Complete simple tasks and earn rewards instantly.</p>
+    <div class="box">
+        <h3>💰 Earn From Tasks</h3>
+        <p>Complete simple tasks and earn rewards instantly.</p>
+    </div>
+    <div class="box">
+        <h3>🚀 Affiliate Program</h3>
+        <p>Invite friends and earn referral bonuses.</p>
+    </div>
+    <div class="box">
+        <h3>⚡ Fast Withdrawals</h3>
+        <p>Withdraw your earnings easily through supported methods.</p>
+    </div>
+    <div class="box">
+        <h3>🔒 Secure System</h3>
+        <p>Your data and payments are protected.</p>
+    </div>
 </div>
-
-<div class="box">
-<h3>🚀 Affiliate Program</h3>
-<p>Invite friends and earn referral bonuses.</p>
-</div>
-
-<div class="box">
-<h3>⚡ Fast Withdrawals</h3>
-<p>Withdraw your earnings easily through supported methods.</p>
-</div>
-
-<div class="box">
-<h3>🔒 Secure System</h3>
-<p>Your data and payments are protected.</p>
-</div>
-
-</div>
-
 </section>
 
 <section class="how">
-
 <h2>How It Works</h2>
-
 <div class="steps">
-
-<p><strong>1.</strong> Register your account.</p>
-
-<p><strong>2.</strong> Complete available tasks.</p>
-
-<p><strong>3.</strong> Earn rewards and referral bonuses.</p>
-
-<p><strong>4.</strong> Monetize your skills.</p>
-
+    <p><strong>1.</strong> Register your account.</p>
+    <p><strong>2.</strong> Complete available tasks.</p>
+    <p><strong>3.</strong> Earn rewards and referral bonuses.</p>
+    <p><strong>4.</strong> Monetize your skills.</p>
 </div>
-
 </section>
 
 <footer>
 <nav>
-      <div style="text-align:center; margin-top:40px;"> 
-        <a href="{{ url_for('contact') }}">CONTACT US</a> 
-        <a href="{{ url_for('about') }}">ABOUT</a>
+    <a href="{{ url_for('contact') }}">CONTACT US</a>
+    <a href="{{ url_for('about') }}">ABOUT</a>
     {% if user %}
         <a href="{{ url_for('logout') }}">Logout</a>
     {% else %}
@@ -267,10 +274,19 @@ Complete tasks, grow your affiliate network, Monetize you skills, and more proje
         <a href="{{ url_for('register') }}">Register</a>
     {% endif %}
 </nav>
-
 <p>© 2026 {{ APP_NAME }} | All Rights Reserved</p>
-
 </footer>
+
+<script>
+function toggleMenu() {
+    var menu = document.getElementById("menu");
+    if(menu.style.display === "block"){
+        menu.style.display = "none";
+    } else {
+        menu.style.display = "block";
+    }
+}
+</script>
 
 </body>
 </html>
