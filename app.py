@@ -550,7 +550,6 @@ def earn_ads():
     )
 
 @app.route("/cash_dashboard")
-@login_required
 def cash_dashboard():
     return render_template("cash_dashboard.html")
 
@@ -1098,7 +1097,7 @@ def ban_user(user_id):
         flash("Error deleting user.", "error")
 
     return redirect(url_for("admin_dashboard"))
-    
+
 @app.route("/admin/contact_messages")
 @admin_required
 def admin_contact_messages():
