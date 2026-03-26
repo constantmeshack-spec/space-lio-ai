@@ -268,12 +268,14 @@ img {
               onsubmit="return confirm('Reset affiliate status for this user?');"
               style="display:inline;">
             <button type="submit">Reset Affiliate</button>
+        </form>
         {% else %}
         <form method="POST"
               action="{{ url_for('ban_user', user_id=u.id) }}"
               onsubmit="return confirm('Are you sure you want to Ban this user?');"
               style="display:inline;">
             <button type="submit">Ban User</button>
+        </form>
         {% endif %}
     </td>
 </tr>

@@ -127,6 +127,21 @@ class User(db.Model):
     pending_checkout_id = db.Column(db.String(50), nullable=True)
     profile_pic = db.Column(db.String(255), default='default_avatar.png')
 
+class TimewallTransaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    transaction_id = db.Column(db.String(100), unique=True, nullable=False)
+
+    revenue = db.Column(db.Float, nullable=False)  # what YOU earned
+    currency_amount = db.Column(db.Float, nullable=False)  # what USER gets
+
+    type = db.Column(db.String(20))  # credit / chargeback
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="timewall_transactions")
+
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
@@ -415,6 +430,75 @@ def notifications():
         notifications=notifications
     )
 
+import hashlib
+
+@app.route("/timewall/postback", methods=["GET"])
+def timewall_postback():
+    user_id = request.args.get("userID")
+    transaction_id = request.args.get("transactionID")
+    revenue = request.args.get("revenue")
+    currency_amount = request.args.get("currencyAmount")
+    tx_type = request.args.get("type")  # credit / chargeback
+    received_hash = request.args.get("hash")
+
+    SECRET_KEY = "b8e7a643d84aff13c8c550402cd0b837"
+
+    # Validate
+    if not all([user_id, transaction_id, revenue, currency_amount]):
+        return "Missing params", 400
+
+    # Verify hash
+    raw = f"{user_id}{revenue}{SECRET_KEY}"
+    expected_hash = hashlib.sha256(raw.encode()).hexdigest()
+
+    if received_hash != expected_hash:
+        return "Invalid hash", 403
+
+    # Prevent duplicates
+    existing = TimewallTransaction.query.filter_by(transaction_id=transaction_id).first()
+    if existing:
+        return "Already processed", 200
+
+    user = User.query.get(user_id)
+    if not user:
+        return "User not found", 404
+
+    try:
+        revenue = float(revenue)
+        currency_amount = float(currency_amount)
+
+        if tx_type == "chargeback":
+            user.balance -= abs(currency_amount)
+        else:
+            user.balance += currency_amount
+
+        # Save transaction
+        tx = TimewallTransaction(
+            user_id=user.id,
+            transaction_id=transaction_id,
+            revenue=revenue,
+            currency_amount=currency_amount,
+            type=tx_type
+        )
+
+        db.session.add(tx)
+        db.session.commit()
+
+        return "OK", 200
+
+    except Exception as e:
+        db.session.rollback()
+        print("Error:", e)
+        return "Error", 500
+
+@app.route("/offerwall")
+@login_required
+def offerwall():
+    user = User.query.get(session["user_id"])
+
+    offerwall_url = f"https://timewall.io/wall?uid={user.id}"
+
+    return render_template("offerwall.html", offerwall_url=offerwall_url)
 
 @app.route("/contact", methods=["GET","POST"])
 @login_required
@@ -979,20 +1063,42 @@ def admin_reward_affiliate():
 def ban_user(user_id):
     user = User.query.get_or_404(user_id)
 
-    # ✅ Mark user as banned
-    user.is_banned = True
+    try:
+        # -------- DELETE FILES --------
+        if user.profile_pic and user.profile_pic != "default_avatar.png":
+            pic_path = os.path.join(app.config["UPLOAD_FOLDER"], user.profile_pic)
+            if os.path.exists(pic_path):
+                os.remove(pic_path)
 
-    # Optional: reset stuff
-    user.verified = False
-    user.earnings = 0
-    user.invitation_code = None
-    user.invited_by_id = None
+        if user.verification_file and os.path.exists(user.verification_file):
+            os.remove(user.verification_file)
 
-    db.session.commit()
+        # -------- DELETE RELATED DATA --------
+        TaskSubmission.query.filter_by(user_id=user.id).delete()
+        AffiliateTransaction.query.filter_by(user_id=user.id).delete()
+        Notification.query.filter_by(user_id=user.id).delete()
+        ContactMessage.query.filter_by(user_id=user.id).delete()
+        AdView.query.filter_by(user_id=user.id).delete()
+        Transaction.query.filter_by(user_id=user.id).delete()
 
-    flash(f"{user.full_name} has been banned.", "success")
+        # If user invited others → unlink them
+        User.query.filter_by(invited_by_id=user.id).update({
+            "invited_by_id": None
+        })
+
+        # -------- DELETE USER --------
+        db.session.delete(user)
+        db.session.commit()
+
+        flash("User completely deleted from system.", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        print("DELETE ERROR:", e)
+        flash("Error deleting user.", "error")
+
     return redirect(url_for("admin_dashboard"))
-
+    
 @app.route("/admin/contact_messages")
 @admin_required
 def admin_contact_messages():
