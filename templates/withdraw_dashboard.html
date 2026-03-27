@@ -110,6 +110,7 @@ function toggleFields() {
     var method = document.getElementById("method").value;
     document.getElementById("mpesa_fields").style.display = (method==="mpesa") ? "block" : "none";
     document.getElementById("bank_fields").style.display = (method==="bank") ? "block" : "none";
+    document.getElementByid("paypal_fields").style.display = (method==="paypal") ? "block" : "none"
 }
 </script>
 </head>

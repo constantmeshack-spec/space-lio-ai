@@ -340,25 +340,28 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        phone = request.form.get("phone")
+        identifier = request.form.get("identifier")  # one field
         password = request.form.get("password")
-        email = request.form.get("email")
 
-        user = User.query.filter_by(phone=phone).first()
-        if not user:
-            user = User.query.filter_by(email=email).first()
+        identifier = identifier.strip().lower()
+
+        # Detect email vs phone
+        if "@" in identifier:
+            user = User.query.filter_by(email=identifier).first()
+        else:
+            user = User.query.filter_by(phone=identifier).first()
 
         if not user or not check_password_hash(user.password, password):
             flash("Invalid login details", "danger")
             return redirect(url_for("login"))
 
-        session["user_id"] = user.id
-        session["is_admin"] = user.is_admin
-        session["is_banned"] = user.is_banned
-
         if user.is_banned:
             flash("Your account has been banned.", "error")
             return redirect(url_for("login"))
+
+        session["user_id"] = user.id
+        session["is_admin"] = user.is_admin
+        session["is_banned"] = user.is_banned
 
         if user.is_admin:
             return redirect(url_for("admin_dashboard"))
