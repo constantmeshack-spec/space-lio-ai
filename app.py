@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import random
 import string
+import uuid
 def generate_unique_invitation_code(length=8):
     """
     Generate a unique alphanumeric invitation code.
@@ -188,15 +189,6 @@ class AffiliateTransaction(db.Model):
     paypal_email = db.Column(db.String(120), nullable=True)
     user = db.relationship("User", backref="affiliate_transactions")
 
-class AffiliatePayment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    reference = db.Column(db.String(100), unique=True, nullable=False)
-    amount = db.Column(db.Integer, nullable=False)  # in kobo
-    status = db.Column(db.String(20), default="pending")  # pending / completed / failed
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    user = db.relationship("User", backref="affiliate_payments")
 class ContactMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -230,21 +222,24 @@ class AdSettings(db.Model):
     daily_limit = db.Column(db.Integer, default=20)
     cooldown = db.Column(db.Integer, default=30)  # seconds between ads
 
-class Transaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    type = db.Column(db.String(50))
-    amount = db.Column(db.Float)
-    status = db.Column(db.String(50))
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-    user = db.relationship('User', backref='transactions')
-
 # Track user ad views
 class AdView(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+class CPXTransaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    trans_id = db.Column(db.String(100), unique=True, nullable=False)
+    offer_id = db.Column(db.String(100), nullable=True)
+    amount_usd = db.Column(db.Float, default=0.0)
+    amount_local = db.Column(db.Float, default=0.0)
+    status = db.Column(db.String(50))   # completed, screenout, bonus, cancelled
+    event_type = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User", backref="cpx_transactions")
 # ----------------- Helpers -----------------
 def login_required(f):
     @wraps(f)
@@ -269,11 +264,62 @@ def admin_required(f):
 
 def get_admin_user():
     return User.query.filter_by(is_admin=True).first()
-import requests, base64, datetime, os
+import base64, datetime, os
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def process_cpx_event(status_name):
+    trans_id = request.args.get("trans_id")
+    user_id = request.args.get("user_id") or request.args.get("subid")  # some networks use subid instead of user_id
+    amount_local = request.args.get("amount_local", 0)
+    amount_usd = request.args.get("amount_usd", 0)
+    offer_id = request.args.get("offer_id")
+    received_hash = request.args.get("hash")
+    event_type = request.args.get("type")
+
+    if not all([trans_id, user_id, received_hash]):
+        return "Missing params", 400
+
+    expected_hash = hashlib.md5(f"{trans_id}-{CPX_SECRET}".encode()).hexdigest()
+    if received_hash != expected_hash:
+        return "Invalid hash", 403
+
+    existing = CPXTransaction.query.filter_by(trans_id=trans_id).first()
+    if existing:
+        return "Already processed", 200
+
+    user = User.query.get(user_id)
+    if not user:
+        return "User not found", 404
+
+    try:
+        amount_usd = float(amount_usd or 0)
+        amount_local = float(amount_local or 0)
+
+        # Decide how you want to reward:
+        if status_name in ["completed", "bonus", "screenout"]:
+            user.balance += amount_usd
+        elif status_name == "cancelled":
+            pass
+
+        tx = CPXTransaction(
+            user_id=user.id,
+            trans_id=trans_id,
+            offer_id=offer_id,
+            amount_usd=amount_usd,
+            amount_local=amount_local,
+            status=status_name,
+            event_type=event_type
+        )
+        db.session.add(tx)
+        db.session.commit()
+        return "OK", 200
+
+    except Exception as e:
+        db.session.rollback()
+        print("CPX ERROR:", e)
+        return "Server error", 500
 # ----------------- Routes -----------------
 @app.route("/")
 def index():
@@ -320,15 +366,17 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        # Check if invitation_code exists
+         # Auto-login after registration
+        session["user_id"] = new_user.id
+        session["is_admin"] = new_user.is_admin
+        session["is_banned"] = new_user.is_banned
+
+      
+        # Check if invitation code exists (store inviter only, no reward yet)
         if invitation_code:
             inviter = User.query.filter_by(invitation_code=invitation_code).first()
             if inviter:
-                inviter.balance += 0.5  # Add $0.5 to inviter
-                if inviter.invited_count is None:
-                    inviter.invited_count = 0
                 new_user.invited_by_id = inviter.id
-                inviter.invited_count += 1
                 db.session.commit()
         
         flash("Account created successfully!")
@@ -391,6 +439,11 @@ def verify_account():
         return redirect(url_for("index"))
 
     if request.method=="POST":
+        accept_terms = request.form.get("accept_terms")
+        if not accept_terms:
+            flash("You must accept the Terms and Conditions.", "error")
+            return redirect(url_for("verify_account"))
+
         id_file = request.files.get("id_file")
         if id_file and id_file.filename != "":
             filename = secure_filename(id_file.filename)
@@ -406,10 +459,6 @@ def verify_account():
             flash("No file selected.", "error")
             accept_terms = request.form.get("accept_terms")
       
-
-            if not accept_terms:
-                flash("You must accept the Terms and Conditions.", "error")
-                return redirect(url_for("verify_account"))
     return render_template("verify_phone.html", user=user)
 @app.route("/terms")
 def terms():
@@ -434,7 +483,35 @@ def notifications():
     )
 
 import hashlib
+from flask import request
+CPX_SECRET = os.environ.get("CPX_SECRET")
+@app.route("/cpxresearch/postback", methods=["GET"])
+def cpxresearch_postback():
+    return process_cpx_event("completed")
 
+@app.route("/cpxresearch/postback/screenout", methods=["GET"])
+def cpxresearch_postback_screenout():
+    return process_cpx_event("screenout")
+
+@app.route("/cpxresearch/postback/bonus", methods=["GET"])
+def cpxresearch_postback_bonus():
+    return process_cpx_event("bonus")
+
+@app.route("/cpxresearch/postback/cancelled", methods=["GET"])
+def cpxresearch_postback_cancelled():
+    return process_cpx_event("cancelled")
+
+@app.route("/cpx")
+@login_required
+def cpx_wall():
+    user = User.query.get(session["user_id"])
+
+    # Replace with your real CPX wall URL / app_id / ext_user_id setup
+    cpx_url = f"https://offers.cpx-research.com/index.php?app_id=32241&ext_user_id={user.id}"
+
+    return render_template("cpx_wall.html", cpx_url=cpx_url, user=user)
+
+secret_key = os.environ.get("SECRET_KEY")
 @app.route("/timewall/postback", methods=["GET"])
 def timewall_postback():
     user_id = request.args.get("userID")
@@ -444,7 +521,7 @@ def timewall_postback():
     tx_type = request.args.get("type")  # credit / chargeback
     received_hash = request.args.get("hash")
 
-    SECRET_KEY = "b8e7a643d84aff13c8c550402cd0b837"
+   
 
     # Validate
     if not all([user_id, transaction_id, revenue, currency_amount]):
@@ -756,9 +833,28 @@ def admin_transactions():
 @admin_required
 def verify_user(user_id):
     user = User.query.get_or_404(user_id)
+
+    # Prevent double verification reward
+    if user.verified:
+        flash(f"{user.full_name} is already verified.", "info")
+        return redirect(url_for("admin_dashboard"))
+
     user.verified = True
+
+    # Reward inviter only after this user is verified
+    if user.invited_by_id:
+        inviter = User.query.get(user.invited_by_id)
+        if inviter:
+            inviter.balance += 0.5
+
+            if inviter.invited_count is None:
+                inviter.invited_count = 0
+
+            inviter.invited_count += 1
+
     db.session.commit()
-    flash(f"{user.full_name} verified.")
+
+    flash(f"{user.full_name} verified successfully.", "success")
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/reject_user/<int:user_id>")
@@ -952,7 +1048,7 @@ def reward_ad():
     view = AdView(user_id=session['user_id'])
     db.session.add(view)
 
-    current_user.balance += settings.reward
+    session['user_id'].balance += settings.reward
 
     db.session.commit()
 
@@ -1317,10 +1413,7 @@ def affiliate_complete():
 
         # Assign referral code if missing
         if not user.referral_code:
-            count = User.query.filter_by(is_affiliate=True).count()
-        import uuid
-        
-        user.referral_code = f"UCSLAA-{uuid.uuid4().hex[:6]}"
+            user.referral_code = f"UCSLAA-{uuid.uuid4().hex[:6].upper()}"
 
         # Record join transaction
         db.session.add(AffiliateTransaction(
