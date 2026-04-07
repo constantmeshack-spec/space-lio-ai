@@ -2,216 +2,326 @@
 <html lang="en">
 <head>
     <meta name="google-adsense-account" content="ca-pub-1452105532954238">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ APP_NAME }} | Earn Online</title>
-<meta name="description" content="Earn money online with tasks and affiliate marketing on SPACE LIO AI.">
-<meta name="keywords" content="earn online, affiliate marketing, tasks platform, online income">
-<meta name="author" content="SPACE LIO AI">
-<link rel="icon" href="{{ url_for('static', filename='space_lio_logo.jpeg') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-/* MAIN */
-body{
-    background:#0b0018;
-    color:white;
-    font-family:Arial, sans-serif;
-    margin:0;
-}
+    <title>{{ APP_NAME }} | Anonymous Social Earning, Jobs, Ads & Online Income Platform</title>
 
-/* NAVBAR */
-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:10px 30px;
-    background:#12002b;
-    border-bottom:1px solid #2de2e6;
-    position:relative;
-}
+    <meta name="description" content="Join SPACE LIO AI to earn online through tasks, affiliate marketing, anonymous posting, monetized likes and views, jobs, advertising, and private anonymous chat.">
+    <meta name="keywords" content="earn online Kenya, anonymous social media, monetized posts, earn from views, earn from likes, jobs platform Kenya, post jobs online, online advertising platform, affiliate marketing Kenya, online income, paid tasks, social earning app, anonymous chat platform, digital marketplace Kenya">
+    <meta name="author" content="SPACE LIO AI">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ request.url }}">
 
-.logo{
-    font-weight:bold;
-    font-size:20px;
-    color:#7cf7ff;
-}
+    <!-- Open Graph -->
+    <meta property="og:title" content="{{ APP_NAME }} | Anonymous Social Earning, Jobs, Ads & Online Income Platform">
+    <meta property="og:description" content="Post anonymously, earn from engagement, apply for jobs, advertise, chat privately, and make money online with SPACE LIO AI.">
+    <meta property="og:image" content="{{ url_for('static', filename='space_lio_logo.jpeg', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ APP_NAME }}">
 
-/* Hamburger */
-.menu-icon{
-    font-size:28px;
-    cursor:pointer;
-    color:#7cf7ff;
-}
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ APP_NAME }} | Anonymous Social Earning, Jobs, Ads & Online Income Platform">
+    <meta name="twitter:description" content="Earn online through anonymous posting, jobs, ads, affiliate marketing, tasks, and engagement monetization.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='space_lio_logo.jpeg', _external=True) }}">
 
-/* Dropdown menu */
-.menu{
-    display:none;
-    position:absolute;
-    top:60px;
-    right:20px;
-    background:#140030;
-    border:1px solid #2de2e6;
-    border-radius:8px;
-    width:200px;
-    z-index:1000;
-}
+    <link rel="icon" href="{{ url_for('static', filename='space_lio_logo.jpeg') }}">
 
-/* Menu links */
-.menu a{
-    display:block;
-    padding:12px;
-    color:white;
-    text-decoration:none;
-    border-bottom:1px solid #2de2e6;
-}
+    <!-- Structured Data SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "{{ APP_NAME }}",
+      "url": "{{ request.url_root }}",
+      "description": "Anonymous social earning, jobs, ads, affiliate marketing, monetized posts, and online income platform.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ request.url_root }}?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
 
-.menu a:hover{
-    background:#1f0045;
-}
+    <style>
+    /* MAIN */
+    body{
+        background:#0b0018;
+        color:white;
+        font-family:Arial, sans-serif;
+        margin:0;
+    }
 
-/* HERO */
-.hero{
-    text-align:center;
-    padding:80px 20px;
-}
+    /* NAVBAR */
+    header{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:10px 30px;
+        background:#12002b;
+        border-bottom:1px solid #2de2e6;
+        position:relative;
+        flex-wrap:wrap;
+        gap:10px;
+    }
 
-.hero img{
-    width:260px;
-    margin-bottom:20px;
-}
+    .logo{
+        font-weight:bold;
+        font-size:20px;
+        color:#7cf7ff;
+    }
 
-.hero h1{
-    font-size:42px;
-    color:#7cf7ff;
-    margin-bottom:10px;
-}
+    /* Hamburger */
+    .menu-icon{
+        font-size:28px;
+        cursor:pointer;
+        color:#7cf7ff;
+    }
 
-.hero p{
-    max-width:600px;
-    margin:auto;
-    margin-bottom:30px;
-    line-height:1.6;
-    color:#d4d4ff;
-}
+    /* Dropdown menu */
+    .menu{
+        display:none;
+        position:absolute;
+        top:60px;
+        right:20px;
+        background:#140030;
+        border:1px solid #2de2e6;
+        border-radius:8px;
+        width:240px;
+        z-index:1000;
+        overflow:hidden;
+    }
 
-.hero button{
-    padding:10px 18px;
-    font-size:30px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    color:white;
-    background:linear-gradient(45deg,#2de2e6,#7b2ff7);
-}
+    /* Menu links */
+    .menu a{
+        display:block;
+        padding:12px;
+        color:white;
+        text-decoration:none;
+        border-bottom:1px solid rgba(45,226,230,0.3);
+    }
 
-.hero button:hover{
-    opacity:0.85;
-}
+    .menu a:hover{
+        background:#1f0045;
+    }
 
-/* FEATURES */
-.features{
-    padding:70px 40px;
-}
+    /* HERO */
+    .hero{
+        text-align:center;
+        padding:80px 20px;
+    }
 
-.features h2{
-    text-align:center;
-    color:#7cf7ff;
-    margin-bottom:40px;
-}
+    .hero img{
+        width:260px;
+        margin-bottom:20px;
+        border-radius:18px;
+        box-shadow:0 0 25px rgba(124,247,255,0.25);
+    }
 
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px;
-}
+    .hero h1{
+        font-size:42px;
+        color:#7cf7ff;
+        margin-bottom:10px;
+        max-width:950px;
+        margin-left:auto;
+        margin-right:auto;
+    }
 
-.box{
-    background:#140030;
-    padding:25px;
-    border-radius:10px;
-    border:1px solid #2de2e6;
-    text-align:center;
-}
+    .hero p{
+        max-width:780px;
+        margin:auto;
+        margin-bottom:30px;
+        line-height:1.8;
+        color:#d4d4ff;
+        font-size:17px;
+    }
 
-.box h3{
-    color:#7cf7ff;
-    margin-bottom:10px;
-}
+    .hero button{
+        padding:14px 24px;
+        font-size:18px;
+        border:none;
+        border-radius:10px;
+        cursor:pointer;
+        color:white;
+        background:linear-gradient(45deg,#2de2e6,#7b2ff7);
+        box-shadow:0 0 20px rgba(45,226,230,0.25);
+    }
 
-/* HOW IT WORKS */
-.how{
-    padding:70px 40px;
-    background:#12002b;
-    border-top:1px solid #2de2e6;
-    border-bottom:1px solid #2de2e6;
-}
+    .hero button:hover{
+        opacity:0.9;
+        transform:translateY(-1px);
+    }
 
-.how h2{
-    text-align:center;
-    color:#7cf7ff;
-    margin-bottom:30px;
-}
+    .hero-buttons{
+        display:flex;
+        justify-content:center;
+        flex-wrap:wrap;
+        gap:15px;
+        margin-top:25px;
+    }
 
-.steps{
-    max-width:700px;
-    margin:auto;
-    line-height:1.8;
-    color:#d4d4ff;
-}
+    /* SECTION */
+    .section{
+        padding:70px 40px;
+    }
 
-/* FOOTER */
-footer{
-    text-align:center;
-    padding:20px;
-    background:#12002b;
-    margin-top:40px;
-    border-top:1px solid #2de2e6;
-}
+    .section h2{
+        text-align:center;
+        color:#7cf7ff;
+        margin-bottom:20px;
+        font-size:32px;
+    }
 
-footer nav a{
-    color:white;
-    margin:0 5px;
-    text-decoration:none;
-}
+    .section p.section-sub{
+        text-align:center;
+        max-width:800px;
+        margin:0 auto 40px;
+        color:#d4d4ff;
+        line-height:1.8;
+    }
 
-footer nav a:hover{
-    opacity:0.8;
-}
-</style>
+    /* FEATURES */
+    .grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+        gap:20px;
+    }
+
+    .box{
+        background:#140030;
+        padding:25px;
+        border-radius:14px;
+        border:1px solid #2de2e6;
+        text-align:center;
+        box-shadow:0 0 18px rgba(45,226,230,0.08);
+    }
+
+    .box h3{
+        color:#7cf7ff;
+        margin-bottom:10px;
+    }
+
+    .box p{
+        color:#d4d4ff;
+        line-height:1.7;
+    }
+
+    /* HOW IT WORKS */
+    .how{
+        padding:70px 40px;
+        background:#12002b;
+        border-top:1px solid #2de2e6;
+        border-bottom:1px solid #2de2e6;
+    }
+
+    .how h2{
+        text-align:center;
+        color:#7cf7ff;
+        margin-bottom:30px;
+    }
+
+    .steps{
+        max-width:800px;
+        margin:auto;
+        line-height:1.9;
+        color:#d4d4ff;
+        font-size:17px;
+    }
+
+    /* FOOTER */
+    footer{
+        text-align:center;
+        padding:30px 20px;
+        background:#12002b;
+        margin-top:40px;
+        border-top:1px solid #2de2e6;
+    }
+
+    footer nav{
+        margin-bottom:15px;
+    }
+
+    footer nav a{
+        color:white;
+        margin:0 8px;
+        text-decoration:none;
+    }
+
+    footer nav a:hover{
+        opacity:0.8;
+    }
+
+    .seo-text{
+        max-width:900px;
+        margin:40px auto 0;
+        color:#bfbff7;
+        line-height:1.8;
+        font-size:15px;
+        text-align:center;
+    }
+
+    @media(max-width:768px){
+        .hero h1{
+            font-size:30px;
+        }
+
+        .hero p{
+            font-size:16px;
+        }
+
+        .hero button{
+            width:100%;
+            max-width:300px;
+        }
+
+        header{
+            padding:12px 18px;
+        }
+    }
+    </style>
 </head>
 
 <body>
 
 <header>
     <div class="logo">{{ APP_NAME }}</div>
-    <a href="{{ url_for('notifications') }}" style="position:relative;">
-     <button>🔔 Notifications</button>
-    <span id="notif-count" style="
-        display:none;
-        position:absolute;
-        top:-8px;
-        right:-8px;
-        background:red;
-        color:white;
-        font-size:12px;
-        padding:2px 6px;
-        border-radius:50%;
-    ">0</span>
+
+    {% if user %}
+    <a href="{{ url_for('notifications') }}" style="position:relative; text-decoration:none;">
+        <button style="padding:10px 14px;border:none;border-radius:8px;background:#1f0045;color:white;cursor:pointer;">🔔 Notifications</button>
+        <span id="notif-count" style="
+            display:none;
+            position:absolute;
+            top:-8px;
+            right:-8px;
+            background:red;
+            color:white;
+            font-size:12px;
+            padding:2px 6px;
+            border-radius:50%;
+        ">0</span>
     </a>
+    {% endif %}
 
     <!-- Hamburger -->
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
 
     <!-- Dropdown Menu -->
     <div id="menu" class="menu">
-        <a href="{{ url_for('profile') }}">👤 Profile</a>
-        <!-- Example inside your menu -->
-         
-       <a href="{{ url_for('tasks') }}">In App picks</a>
-        <a href="{{ url_for('affiliate') }}">Affiliate</a>
-        <a href="{{ url_for('offerwall') }}">Earn from Offerwall</a>
-        <a href="{{ url_for('cpx_wall') }}">SURVEYS</a>
         {% if user %}
+            <a href="{{ url_for('profile') }}">👤 Profile</a>
+            <a href="{{ url_for('dashboard') }}">🏠 Dashboard</a>
+            <a href="{{ url_for('tasks') }}">📌 In App Picks</a>
+            <a href="{{ url_for('affiliate') }}">🚀 Affiliate</a>
+            <a href="{{ url_for('offerwall') }}">💰 Earn from Offerwall</a>
+            <a href="{{ url_for('cpx_wall') }}">📊 Surveys</a>
+            <a href="{{ url_for('cash_dashboard') }}">💵 Cash Dashboard</a>
+            <a href="#">🕵️ Nonimas Feed</a>
+            <a href="#">💼 Jobs</a>
+            <a href="#">📢 Advertise</a>
+            <a href="#">💬 Anonymous Chat</a>
             <a href="{{ url_for('logout') }}">Logout</a>
         {% else %}
             <a href="{{ url_for('login') }}">Login</a>
@@ -221,64 +331,100 @@ footer nav a:hover{
 </header>
 
 <section class="hero">
-    <img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" alt="SPACE LIO AI Logo">
-    <h1>EMPLOYER, WORKER, ADVERTISER? WELCOME TO {{ APP_NAME }}</h1>
+    <img src="{{ url_for('static', filename='space_lio_logo.jpeg') }}" alt="SPACE LIO AI anonymous social earning platform logo">
+    <h1>POST, EARN, HIRE, ADVERTISE & CHAT ANONYMOUSLY ON {{ APP_NAME }}</h1>
     <p>
-        Complete tasks, grow your affiliate network, Monetize your skills, and more projects.
+        {{ APP_NAME }} is an all-in-one digital platform where users can earn online, post anonymously through <strong>Nonimas</strong>, monetize views and likes, apply for jobs, post jobs, advertise businesses, complete paid tasks, and connect through anonymous chat.
     </p>
-    {% if user %}
-    <a href="{{ url_for('dashboard') }}"><button>Go to Dashboard</button></a>
-    {% else %}
-    <a href="{{ url_for('register') }}"><button>Start Earning</button></a>
-    {% endif %}
-    <br><br>
-    <a href="{{ url_for('cash_dashboard') }}"><button>💰 CASH Dashboard</button></a>
+
+    <div class="hero-buttons">
+        {% if user %}
+            <a href="{{ url_for('dashboard') }}"><button>Go to Dashboard</button></a>
+        {% else %}
+            <a href="{{ url_for('register') }}"><button>Join & Start Earning</button></a>
+        {% endif %}
+        <a href="{{ url_for('cash_dashboard') }}"><button>💰 Cash Dashboard</button></a>
+    </div>
 </section>
 
-<section class="features">
-<h2>Platform Features</h2>
-<div class="grid">
-    <div class="box">
-        <h3>💰 Earn From Tasks</h3>
-        <p>Complete simple tasks and earn rewards instantly.</p>
+<section class="section">
+    <h2>Everything You Need In One Platform</h2>
+    <p class="section-sub">
+        From creators and job seekers to advertisers and workers, {{ APP_NAME }} helps users turn engagement, skills, and opportunities into income.
+    </p>
+
+    <div class="grid">
+        <div class="box">
+            <h3>🕵️ Nonimas</h3>
+            <p>Post anonymously, gain engagement, and monetize your views and likes safely.</p>
+        </div>
+        <div class="box">
+            <h3>💼 Jobs Marketplace</h3>
+            <p>Apply for jobs, hire workers, and connect employers with skilled talent.</p>
+        </div>
+        <div class="box">
+            <h3>📢 Advertising Hub</h3>
+            <p>Promote your products, services, events, and opportunities to targeted users.</p>
+        </div>
+        <div class="box">
+            <h3>💬 Anonymous Chat</h3>
+            <p>Talk privately, connect safely, and build conversations without revealing identity.</p>
+        </div>
+        <div class="box">
+            <h3>💰 Earn From Tasks</h3>
+            <p>Complete simple online tasks and earn rewards directly on the platform.</p>
+        </div>
+        <div class="box">
+            <h3>🚀 Affiliate Program</h3>
+            <p>Invite users and earn referral bonuses as your network grows.</p>
+        </div>
+        <div class="box">
+            <h3>📊 Surveys & Offerwalls</h3>
+            <p>Make extra money by completing surveys and sponsored offers.</p>
+        </div>
+        <div class="box">
+            <h3>⚡ Fast Withdrawals</h3>
+            <p>Withdraw your earnings quickly using supported payment methods.</p>
+        </div>
     </div>
-    <div class="box">
-        <h3>🚀 Affiliate Program</h3>
-        <p>Invite friends and earn referral bonuses.</p>
-    </div>
-    <div class="box">
-        <h3>⚡ Fast Withdrawals</h3>
-        <p>Withdraw your earnings easily through supported methods.</p>
-    </div>
-    <div class="box">
-        <h3>🔒 Secure System</h3>
-        <p>Your data and payments are protected.</p>
-    </div>
-</div>
 </section>
 
 <section class="how">
-<h2>How It Works</h2>
-<div class="steps">
-    <p><strong>1.</strong> Register your account.</p>
-    <p><strong>2.</strong> Complete available tasks.</p>
-    <p><strong>3.</strong> Earn rewards and referral bonuses.</p>
-    <p><strong>4.</strong> Monetize your skills.</p>
-</div>
+    <h2>How {{ APP_NAME }} Works</h2>
+    <div class="steps">
+        <p><strong>1.</strong> Create your account and set up your profile.</p>
+        <p><strong>2.</strong> Start posting, applying for jobs, advertising, or completing tasks.</p>
+        <p><strong>3.</strong> Earn through engagement, opportunities, referrals, and platform activities.</p>
+        <p><strong>4.</strong> Withdraw your earnings and grow your online presence or business.</p>
+    </div>
+</section>
+
+<section class="section">
+    <h2>Why People Search For {{ APP_NAME }}</h2>
+    <p class="section-sub">
+        Users looking for ways to earn online, anonymous social media, digital jobs, online advertising, and creator monetization can all find solutions here.
+    </p>
+
+    <div class="seo-text">
+        <p>
+            {{ APP_NAME }} is designed for smart users who want a modern online income platform. Whether you want to earn from likes and views, post anonymous content, apply for digital jobs, advertise your brand, complete online tasks, or join affiliate programs, this platform gives you one place to do it all.
+        </p>
+    </div>
 </section>
 
 <footer>
-<nav>
-    <a href="{{ url_for('contact') }}">CONTACT US</a>
-    <a href="{{ url_for('about') }}">ABOUT</a>
-    {% if user %}
-        <a href="{{ url_for('logout') }}">Logout</a>
-    {% else %}
-        <a href="{{ url_for('login') }}">Login</a>
-        <a href="{{ url_for('register') }}">Register</a>
-    {% endif %}
-</nav>
-<p>© 2026 {{ APP_NAME }} | All Rights Reserved</p>
+    <nav>
+        <a href="{{ url_for('contact') }}">CONTACT US</a>
+        <a href="{{ url_for('about') }}">ABOUT</a>
+        <a href="{{ url_for('terms') }}">TERMS</a>
+        {% if user %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('register') }}">Register</a>
+        {% endif %}
+    </nav>
+    <p>© 2026 {{ APP_NAME }} | All Rights Reserved</p>
 </footer>
 
 <script>
@@ -290,6 +436,16 @@ function toggleMenu() {
         menu.style.display = "block";
     }
 }
+
+// Close menu if clicked outside
+document.addEventListener("click", function(event){
+    const menu = document.getElementById("menu");
+    const icon = document.querySelector(".menu-icon");
+
+    if(menu && icon && !menu.contains(event.target) && !icon.contains(event.target)){
+        menu.style.display = "none";
+    }
+});
 </script>
 
 </body>
