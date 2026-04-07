@@ -68,27 +68,47 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # ----------------- Uploads -----------------
-app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "uploads")
-os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-UPLOAD_FOLDER = 'static/uploads/profile_pics'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Base upload folder
+UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["PROFILE_UPLOAD_FOLDER"] = os.path.join(UPLOAD_FOLDER, "profile_pics")
+app.config["VERIFICATION_UPLOAD_FOLDER"] = os.path.join(UPLOAD_FOLDER, "verification")
+app.config["TASK_UPLOAD_FOLDER"] = os.path.join(UPLOAD_FOLDER, "tasks")
+
+# Create folders
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+os.makedirs(app.config["PROFILE_UPLOAD_FOLDER"], exist_ok=True)
+os.makedirs(app.config["VERIFICATION_UPLOAD_FOLDER"], exist_ok=True)
+os.makedirs(app.config["TASK_UPLOAD_FOLDER"], exist_ok=True)
+
+# Allowed file types
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Generate unique filename
+def unique_filename(filename):
+    ext = filename.rsplit('.', 1)[1].lower()
+    return f"{uuid.uuid4().hex}.{ext}"
+
 # ----------------- Serve Files -----------------
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
+@app.route("/uploads/profile/<path:filename>")
+def profile_file(filename):
+    return send_from_directory(app.config["PROFILE_UPLOAD_FOLDER"], filename)
+
 @app.route("/uploads/verification/<path:filename>")
 def verification_file(filename):
-    verification_folder = os.path.join(app.config["UPLOAD_FOLDER"], "verification")
-    return send_from_directory(verification_folder, filename)
+    return send_from_directory(app.config["VERIFICATION_UPLOAD_FOLDER"], filename)
+
 @app.route("/uploads/tasks/<path:filename>")
 def task_file(filename):
-    task_folder = os.path.join(app.config["UPLOAD_FOLDER"], "tasks")
-    mimetype, _ = mimetypes.guess_type(filename)
-    return send_from_directory(task_folder, filename)
-
+    return send_from_directory(app.config["TASK_UPLOAD_FOLDER"], filename)
 # ----------------- Context Processor -----------------
 @app.context_processor
 def inject_app_name():
@@ -1048,7 +1068,7 @@ def reward_ad():
     view = AdView(user_id=session['user_id'])
     db.session.add(view)
 
-    session['user_id'].balance += settings.reward
+    user.balance += settings.reward
 
     db.session.commit()
 
@@ -1318,9 +1338,6 @@ def join_affiliate():
 @app.route("/process_affiliate_join", methods=["POST"])
 @login_required
 def process_affiliate_join():
-    import requests
-    import os
-
     user = User.query.get(session["user_id"])
 
     if user.is_affiliate:
